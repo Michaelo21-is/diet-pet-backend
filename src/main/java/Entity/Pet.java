@@ -63,4 +63,9 @@ public class Pet {
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PetFoodTracker> petFoodTracker;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
+
 }

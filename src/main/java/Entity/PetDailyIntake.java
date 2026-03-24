@@ -37,4 +37,9 @@ public class PetDailyIntake {
     @Column(nullable = false, name = "intake_date")
     private LocalDate intakeDate;
 
+    @OneToOne
+    @JoinColumn(name = "pet_id")
+    private Pet pet;
+
+
 }

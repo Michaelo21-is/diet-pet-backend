@@ -30,4 +30,8 @@ public class JwtToken {
 
     @Column(nullable = false, name = "experation_date_refresh_token")
     private Instant experationDateRefreshToken;
+
+    @OneToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
 }

@@ -25,7 +25,11 @@ public class Comment {
     @Column(nullable = false, name = "like_counter")
     private Long likeCounter;
 
-   @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LikeComment> likeComment;
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Users user;
 }
