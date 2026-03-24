@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -50,4 +51,16 @@ public class Pet {
 
     @Column(nullable = false, name = "fiber_balance")
     private Double fiberBalance;
+
+    @OneToOne(mappedBy = "pet")
+    private Image image;
+
+    @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private PetDailyIntake petDailyIntake;
+
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PetWalkOut> petWalkOut;
+
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PetFoodTracker> petFoodTracker;
 }

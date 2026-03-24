@@ -17,11 +17,4 @@ public class LikeComment {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private Users user;
 }

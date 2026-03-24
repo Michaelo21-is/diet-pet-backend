@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Builder
 @Data
 @NoArgsConstructor
@@ -22,4 +24,8 @@ public class Comment {
 
     @Column(nullable = false, name = "like_counter")
     private Long likeCounter;
+
+   @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LikeComment> likeComment;
+
 }
