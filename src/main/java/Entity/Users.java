@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class Users {
     private String timeZone;
 
     @Column(nullable = false, name = "date_of_creation")
-    private LocalDateTime dateOfCreation;
+    private LocalDate dateOfCreation;
 
 
 

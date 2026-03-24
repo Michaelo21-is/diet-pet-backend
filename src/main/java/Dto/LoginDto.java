@@ -7,10 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RegisterDetailsDto {
-    private String name;
+public class LoginDto {
     private String email;
     private String password;
-    private String countryCode;
-    private String timeZone;
 }
