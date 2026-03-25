@@ -1,0 +1,18 @@
+package Response;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class PetDailyNutritionRequirementsResponse {
+    private Double calories;
+    private Double protein;
+    private Double fat;
+    private Double carbohydrates;
+    private Double fiber;
+}

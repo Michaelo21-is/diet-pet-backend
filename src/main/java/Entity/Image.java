@@ -27,4 +27,7 @@ public class Image {
 
     @Column(nullable = false, name = "upload_time")
     private LocalDateTime uploadTime;
+
+    @Column(name="alt")
+    private String alt;
 }

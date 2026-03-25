@@ -25,14 +25,17 @@ public class Pet {
     @Enumerated(EnumType.STRING)
     private PetType petType;
 
-    @Column(nullable = false, name = "name")
-    private String name;
+    @Column(nullable = false, name = "pet_name")
+    private String petName;
 
-    @Column(nullable = false, name = "type_breed")
-    private String breed;
+    @Column(nullable = false, name = "pet_breed")
+    private String petBreed;
 
-    @Column(nullable = false, name = "weight")
-    private Double weight;
+    @Column(nullable = false, name = "pet_weight_kg")
+    private Double petWeightKg;
+
+    @Column(nullable = false, name = "neutered")
+    private Boolean neutered;
 
     @Column(nullable = false, name = "birth_date")
     private LocalDate birthDate;

@@ -22,14 +22,14 @@ public class JwtToken {
     @Column(nullable = false, name = "access_token")
     private String accessToken;
 
-    @Column(nullable = false, name = "expedition_date_access_token")
-    private Instant expeditionDateAccessToken;
+    @Column(nullable = false, name = "expiration_date_access_token")
+    private Instant expirationDateAccessToken;
 
     @Column(nullable = false, name = "refresh_token")
     private String refreshToken;
 
-    @Column(nullable = false, name = "experation_date_refresh_token")
-    private Instant experationDateRefreshToken;
+    @Column(nullable = false, name = "expiration_date_refresh_token")
+    private Instant expirationDateRefreshToken;
 
     @OneToOne
     @JoinColumn(name = "user_id")
