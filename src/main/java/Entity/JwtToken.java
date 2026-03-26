@@ -19,12 +19,6 @@ public class JwtToken {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false, name = "access_token")
-    private String accessToken;
-
-    @Column(nullable = false, name = "expiration_date_access_token")
-    private Instant expirationDateAccessToken;
-
     @Column(nullable = false, name = "refresh_token")
     private String refreshToken;
 

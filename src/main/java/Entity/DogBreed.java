@@ -17,7 +17,4 @@ public class DogBreed {
     @Column(nullable = false, name = "DogBreed")
     private String dogBreed;
 
-    @Column(nullable = false, name = "dog_size")
-    private String dogSize;
-
 }

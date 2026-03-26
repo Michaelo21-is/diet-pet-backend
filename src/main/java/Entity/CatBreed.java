@@ -20,6 +20,5 @@ public class CatBreed {
     @Column(nullable = false, name = "cat_breed")
     private String catBreed;
 
-    @Column(nullable = false, name = "cat_size")
-    private String catSize;
+
 }

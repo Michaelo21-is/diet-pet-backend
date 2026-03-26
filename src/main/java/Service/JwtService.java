@@ -5,6 +5,7 @@ import Response.AuthResponse;
 import Entity.JwtToken;
 import Entity.Users;
 import Repository.TokenRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -22,6 +23,9 @@ import java.util.Map;
 
 @Service
 public class JwtService {
+    private final Long ACCESS_TOKEN_EXPIRATION_TIME_MS = 15L * 60 * 1000;
+    private final Long REFRESH_TOKEN_EXPIRATION_TIME_MS = 14L * 24 * 60 * 60 * 1000;
+    private final Long TWO_FACTOR_CODE_EXPIRATION_TIME_MS = 10L * 60 * 1000;
 
     private final TokenRepository tokenRepository;
 
@@ -38,7 +42,7 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private String buildToken(Map<String, Object> extraClaims, String subject, long expiration) {
+    private String buildToken(Map<String, Object> extraClaims, String subject, Long expiration) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(subject)
@@ -57,13 +61,13 @@ public class JwtService {
         }
         Long expirationTime ;
         if (tokenType.equals(TokenType.ACCESS)) {
-            expirationTime = 15L * 60 * 1000;
+            expirationTime = ACCESS_TOKEN_EXPIRATION_TIME_MS;
         }
         else if (tokenType.equals(TokenType.REFRESH)){
-            expirationTime = 14L * 24 * 60 * 60 * 1000;
+            expirationTime = REFRESH_TOKEN_EXPIRATION_TIME_MS;
         }
         else{
-            expirationTime = 10L * 60 * 1000;
+            expirationTime = TWO_FACTOR_CODE_EXPIRATION_TIME_MS;
         }
         return buildToken(claims, user.getEmail(), expirationTime);
     }
@@ -81,9 +85,7 @@ public class JwtService {
                                 .build()
                 );
 
-        jwtToken.setAccessToken(accessToken);
         jwtToken.setRefreshToken(refreshToken);
-        jwtToken.setExpirationDateAccessToken(accessExpiry);
         jwtToken.setExpirationDateRefreshToken(refreshExpiry);
 
         tokenRepository.save(jwtToken);
@@ -92,13 +94,21 @@ public class JwtService {
     public void deleteToken(Users user){
         tokenRepository.deleteAllByUser_Id(user.getId());
     }
-    public Users getUserFromAccessToken(String accessToken){
-        JwtToken jwtToken = tokenRepository.findByAccessToken(accessToken)
-                .orElse(null);
-        if (jwtToken == null || jwtToken.getExpirationDateAccessToken().isBefore(Instant.now())) {
+    private Claims extractAllClaims(String token) {
+        return Jwts
+                .parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+    public Long getUserIdFromAccessToken(String accessToken) {
+        Claims claims = extractAllClaims(accessToken);
+        Object userId = claims.get("userId");
+        if (userId == null) {
             return null;
         }
-        return jwtToken.getUser();
+        return Long.valueOf(userId.toString());
     }
     @Transactional
     public AuthResponse renewAccessToken(String refreshToken){
