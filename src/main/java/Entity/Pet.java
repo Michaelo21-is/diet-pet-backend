@@ -49,11 +49,6 @@ public class Pet {
     @Column(nullable = false, name = "fat_balance")
     private Double fatBalance;
 
-    @Column(nullable = false, name = "carbohydrates_balance")
-    private Double carbohydratesBalance;
-
-    @Column(nullable = false, name = "fiber_balance")
-    private Double fiberBalance;
 
     @OneToOne(mappedBy = "pet")
     private Image image;

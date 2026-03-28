@@ -28,14 +28,11 @@ public class PetDailyIntake {
     @Column(nullable = false, name="daily_fat")
     private Double dailyFat;
 
-    @Column(nullable = false, name="daily_carbohydrates")
-    private Double dailyCarbohydrates;
-
-    @Column(nullable = false, name="daily_fiber")
-    private Double dailyFiber;
-
     @Column(nullable = false, name = "intake_date")
     private LocalDate intakeDate;
+
+    @Column(nullable = false, name = "daily_walkout")
+    private Integer dailyWalkout;
 
     @OneToOne
     @JoinColumn(name = "pet_id")

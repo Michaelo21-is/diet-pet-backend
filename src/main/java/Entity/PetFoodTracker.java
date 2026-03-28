@@ -37,15 +37,6 @@ public class PetFoodTracker {
     @Column(nullable = false, name="protein")
     private Double protein;
 
-    @Column(nullable = false, name="carbohydrates")
-    private Double carbohydrates;
-
-    @Column(nullable = false, name="fiber")
-    private Double fiber;
-
-    @Column(nullable = false, name="fat")
-    private Double fat;
-
     @Column(nullable = false, name="ai_review", length = 500)
     private String aiReview;
 

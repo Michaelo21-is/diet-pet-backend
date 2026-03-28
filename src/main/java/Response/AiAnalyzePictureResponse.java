@@ -1,17 +1,22 @@
 package Response;
 
+import Enums.FoodSafetyLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class PetDailyNutritionRequirementsResponse {
+@Builder
+public class AiAnalyzePictureResponse {
     private Double calories;
     private Double protein;
     private Double fat;
-
+    private String foodName;
+    private Double grams;
+    private Integer foodScore;
+    private FoodSafetyLevel foodSafetyLevel;
+    private String aiReview;
 }
