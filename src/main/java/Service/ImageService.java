@@ -66,6 +66,17 @@ public class ImageService {
         imageRepository.save(image);
         return image;
     }
+    public void deleteImage(Long id) {
+        Image image = imageRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Image not found"));
+        String imagePath = IMAGE_PATH + File.separator + image.getImageName();
+        File file = new File(imagePath);
+        if (file.exists()) {
+            file.delete();
+        }
+        imageRepository.deleteById(id);
+    }
+
+    // creating new unique name for the image file
     private String generateRandomImageName(Integer length) {
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {

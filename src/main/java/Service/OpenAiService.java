@@ -1,5 +1,6 @@
 package Service;
 
+import Enums.PetType;
 import Response.AiAnalyzePictureResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openai.client.OpenAIClient;
@@ -22,13 +23,13 @@ public class OpenAiService {
         this.objectMapper = objectMapper;
     }
 
-    public AiAnalyzePictureResponse analyzeFoodPicture(MultipartFile file, Double grams) throws Exception {
+    public AiAnalyzePictureResponse analyzeFoodPicture(MultipartFile file, Double grams, String petBreed, PetType petType, Double age) throws Exception {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
 
         String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
-        String prompt = buildPrompt(grams);
+        String prompt = buildPrompt(grams, petBreed, petType, age);
         String contentType = file.getContentType();
 
         List<ResponseInputItem> inputItems = List.of(
@@ -65,37 +66,57 @@ public class OpenAiService {
         return objectMapper.readValue(json, AiAnalyzePictureResponse.class);
     }
 
-    private String buildPrompt(Double grams) {
+    private String buildPrompt(Double grams, String petBreed, PetType petType, Double age) {
         String gramsInstruction = (grams == null)
                 ? """
-                  The grams field was not provided by the user.
-                  Estimate the visible portion in grams as best as possible.
-                  """
+              The grams field was not provided by the user.
+              Estimate the visible portion in grams as best as possible.
+              """
                 : "The exact food weight is " + grams + " grams. Use this exact value in the grams field.";
 
+        String petContext = """
+            Pet details:
+            - Pet type: %s
+            - Pet breed: %s
+            - Pet age: %s years
+
+            Use these pet details when evaluating whether this food is appropriate, safe, and healthy for this specific pet.
+            Consider the pet type, breed, and age when writing the aiReview and assigning the foodScore and foodSafetyLevel.
+            """
+                .formatted(
+                        petType != null ? petType.name() : "Unknown",
+                        petBreed != null && !petBreed.isBlank() ? petBreed : "Unknown",
+                        age != null ? age : "Unknown"
+                );
+
         return """
-                Analyze the attached pet food image.
+            Analyze the attached pet food image.
 
-                Return ONLY valid JSON with this exact shape:
-                {
-                  "calories": 0.0,
-                  "protein": 0.0,
-                  "fat": 0.0,
-                  "foodName": "",
-                  "grams": 0.0,
-                  "foodScore": 0,
-                  "foodSafetyLevel": "SAFE",
-                  "aiReview": ""
-                }
+            %s
 
-                Rules:
-                - calories, protein, fat, grams must be numbers
-                - foodScore must be integer 1-100
-                - aiReview should be short
-                - no markdown
-                - no extra text
+            Return ONLY valid JSON with this exact shape:
+            {
+              "calories": 0.0,
+              "protein": 0.0,
+              "fat": 0.0,
+              "foodName": "",
+              "grams": 0.0,
+              "foodScore": 0,
+              "foodSafetyLevel": "SAFE",
+              "aiReview": ""
+            }
 
-                """ + gramsInstruction;
+            Rules:
+            - calories, protein, fat, grams must be numbers
+            - foodScore must be integer 1-100
+            - aiReview should be short
+            - no markdown
+            - no extra text
+            - Evaluate the food for this specific pet, not in general
+            - If the food looks unsafe or unsuitable for the pet, reflect that in foodSafetyLevel, foodScore, and aiReview
+
+            %s
+            """.formatted(petContext, gramsInstruction);
     }
 
     private String cleanJson(String text) {

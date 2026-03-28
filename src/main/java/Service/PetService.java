@@ -71,18 +71,19 @@ public class PetService {
         petRepository.save(pet);
         return "Pet created successfully";
     }
-    public AiAnalyzePictureResponse uploadPictureOfFoodForPet(MultipartFile file, Long userId, Double grams) throws Exception{
+    public AiAnalyzePictureResponse uploadPictureOfFoodForPet(MultipartFile file, Long userId, Double grams, Double age) throws Exception{
         if (userId == null){
             throw new IllegalArgumentException("User ID cannot be null");
         }
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
+        Pet pet = petRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File must be an image");
         }
-        AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(file, grams);
+        AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(file, grams, pet.getPetBreed(), pet.getPetType(), age);
         return aiAnalyzePictureResponse;
     }
 
