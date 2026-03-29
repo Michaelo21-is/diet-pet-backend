@@ -19,4 +19,5 @@ public class AiAnalyzePictureResponse {
     private Integer foodScore;
     private FoodSafetyLevel foodSafetyLevel;
     private String aiReview;
+    private Integer petDailyWalkout;
 }

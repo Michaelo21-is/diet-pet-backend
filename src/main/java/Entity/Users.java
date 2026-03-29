@@ -37,9 +37,6 @@ public class Users {
     @Column(nullable = false, name = "role")
     private Role role;
 
-    @Column(name = "country_code", length = 2)
-    private String countryCode;
-
     @Column(name = "time_zone", nullable = false)
     private String timeZone;
 

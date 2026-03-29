@@ -49,8 +49,10 @@ public class Pet {
     @Column(nullable = false, name = "fat_balance")
     private Double fatBalance;
 
+    @Column(nullable = false, name = "pet_walkout_balance")
+    private Integer petWalkoutBalance;
 
-    @OneToOne(mappedBy = "pet")
+    @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private Image image;
 
     @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)

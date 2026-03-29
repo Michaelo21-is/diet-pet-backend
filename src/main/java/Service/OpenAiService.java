@@ -1,5 +1,6 @@
 package Service;
 
+import Enums.ActivityLevel;
 import Enums.PetType;
 import Response.AiAnalyzePictureResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,12 +25,9 @@ public class OpenAiService {
     }
 
     public AiAnalyzePictureResponse analyzeFoodPicture(MultipartFile file, Double grams, String petBreed, PetType petType, Double age) throws Exception {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File cannot be empty");
-        }
 
         String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
-        String prompt = buildPrompt(grams, petBreed, petType, age);
+        String prompt = buildPromptForAnazlyzingImage(grams, petBreed, petType, age);
         String contentType = file.getContentType();
 
         List<ResponseInputItem> inputItems = List.of(
@@ -65,8 +63,63 @@ public class OpenAiService {
 
         return objectMapper.readValue(json, AiAnalyzePictureResponse.class);
     }
+    private Double calculateCaloriesByAWalk(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevel activityLevel){
+        private String = buildPromptForAWalk(km, duration, weight, age, petBreed, activityLevel);
+    }
 
-    private String buildPrompt(Double grams, String petBreed, PetType petType, Double age) {
+
+    /// ////////////////////////////////////////////////////////////PROMPT///////////////////////////////////////////////////////////////////////////////////////////////
+
+    private String buildPromptForAWalk(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevel activityLevel){
+        String walkContext = """
+        Pet details:
+        - Pet type: DOG
+        - Pet breed: %s
+        - Pet age: %s years
+        - Pet weight: %s kg
+        - Walking distance: %s km
+        - Walking duration: %s hours
+        - Activity level: %s
+        """.formatted(
+                petBreed != null && !petBreed.isBlank() ? petBreed : "Unknown",
+                age != null ? age : "Unknown",
+                weight != null ? weight : "Unknown",
+                km != null ? km : "Unknown",
+                duration != null ? duration : "Unknown",
+                activityLevel != null ? activityLevel.name() : "Unknown"
+        );
+
+        return """
+        You are a dog activity calorie estimator.
+
+        Calculate how many calories the dog burned during this activity.
+
+        %s
+
+        Instructions:
+        - Use the dog's breed, age, weight, walking distance, walking duration, and activity level.
+        - Activity level can affect calorie burn:
+          - CHILLWALK = relaxed walk
+          - PLAYWALK = walk with more movement and play
+          - INTENSESPORT = intense physical activity
+        - Return only the estimated burned calories for this activity.
+        - Return only a valid JSON object.
+        - Do not return markdown.
+        - Do not explain anything.
+
+        Return JSON in this exact format:
+        {
+          "burnedCalories": 0.0
+        }
+
+        Rules:
+        - burnedCalories must be a number
+        - no extra fields
+        - no extra text
+        """.formatted(walkContext);
+    }
+
+    private String buildPromptForAnazlyzingImage(Double grams, String petBreed, PetType petType, Double age) {
         String gramsInstruction = (grams == null)
                 ? """
               The grams field was not provided by the user.
@@ -120,18 +173,14 @@ public class OpenAiService {
     }
 
     private String cleanJson(String text) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("Text is null or blank");
+        }
         String cleaned = text.trim();
-
-        if (cleaned.startsWith("```json")) {
-            cleaned = cleaned.substring(7).trim();
-        } else if (cleaned.startsWith("```")) {
-            cleaned = cleaned.substring(3).trim();
-        }
-
-        if (cleaned.endsWith("```")) {
-            cleaned = cleaned.substring(0, cleaned.length() - 3).trim();
-        }
-
-        return cleaned;
+        return cleaned
+                .replaceFirst("^```json\\s*", "")
+                .replaceFirst("^```\\s*", "")
+                .replaceFirst("\\s*```$", "")
+                .trim();
     }
 }

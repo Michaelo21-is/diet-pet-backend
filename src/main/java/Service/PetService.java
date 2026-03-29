@@ -1,19 +1,17 @@
 package Service;
 
+import Dto.StartAWalkOutDto;
 import Dto.UploadNewPetDto;
 import Entity.*;
 import Enums.PetType;
-import Repository.CatBreedRepository;
-import Repository.DogBreedRepository;
-import Repository.PetRepository;
+import Repository.*;
 import Response.AiAnalyzePictureResponse;
 import Response.PetDailyNutritionRequirementsResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
-import java.time.Period;
+import java.time.*;
 import java.util.List;
 
 
@@ -24,14 +22,16 @@ public class PetService {
     private final CatBreedRepository catBreedRepository;
     private final ImageService imageService;
     private final OpenAiService openAiService;
+    private final PetFoodTrackerRepository petFoodTrackerRepository;
 
     public PetService(PetRepository petRepository , DogBreedRepository dogBreedRepository, CatBreedRepository catBreedRepository
-            , ImageService imageService, OpenAiService openAiService) {
+            , ImageService imageService, OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository) {
         this.petRepository = petRepository;
         this.dogBreedRepository = dogBreedRepository;
         this.catBreedRepository = catBreedRepository;
         this.imageService = imageService;
         this.openAiService = openAiService;
+        this.petFoodTrackerRepository = petFoodTrackerRepository;
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
@@ -84,9 +84,24 @@ public class PetService {
             throw new IllegalArgumentException("File must be an image");
         }
         AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(file, grams, pet.getPetBreed(), pet.getPetType(), age);
+        PetFoodTracker aiAnalyze = PetFoodTracker
+                .builder()
+                .pet(pet)
+                .foodName(aiAnalyzePictureResponse.getFoodName())
+                .grams(aiAnalyzePictureResponse.getGrams())
+                .protein(aiAnalyzePictureResponse.getProtein())
+                .aiReview(aiAnalyzePictureResponse.getAiReview())
+                .foodScore(aiAnalyzePictureResponse.getFoodScore())
+                .foodSafetyLevel(aiAnalyzePictureResponse.getFoodSafetyLevel())
+                .createdAt(Instant.now())
+                .build();
+        petFoodTrackerRepository.save(aiAnalyze);
         return aiAnalyzePictureResponse;
     }
+    public void startAWalk(Long userId, StartAWalkOutDto walkStats) {
+        Pet pet = petRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
 
+    }
 
 
 

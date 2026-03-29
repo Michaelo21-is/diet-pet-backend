@@ -38,7 +38,7 @@ public class AuthService {
             return "Email already exists";
         }
         String encodedPassword = passwordEncoder.encode(registerDetailsDto.getPassword());
-        if(registerDetailsDto.getCountryCode() == null || registerDetailsDto.getTimeZone() == null){
+        if(registerDetailsDto.getTimeZone() == null){
             return "please give access to your location";
         }
         Users users = Users.builder()
@@ -46,7 +46,6 @@ public class AuthService {
                 .email(registerDetailsDto.getEmail())
                 .role(Role.REGULAR_USER)
                 .password(encodedPassword)
-                .countryCode(registerDetailsDto.getCountryCode())
                 .timeZone(registerDetailsDto.getTimeZone())
                 .dateOfCreation(LocalDate.now(ZoneId.of("Asia/Jerusalem")))
                 .build();
