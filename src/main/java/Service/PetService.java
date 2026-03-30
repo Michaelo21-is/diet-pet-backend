@@ -23,15 +23,16 @@ public class PetService {
     private final ImageService imageService;
     private final OpenAiService openAiService;
     private final PetFoodTrackerRepository petFoodTrackerRepository;
-
+    private final UserRepository userRepository;
     public PetService(PetRepository petRepository , DogBreedRepository dogBreedRepository, CatBreedRepository catBreedRepository
-            , ImageService imageService, OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository) {
+            , ImageService imageService, OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository, UserRepository userRepository) {
         this.petRepository = petRepository;
         this.dogBreedRepository = dogBreedRepository;
         this.catBreedRepository = catBreedRepository;
         this.imageService = imageService;
         this.openAiService = openAiService;
         this.petFoodTrackerRepository = petFoodTrackerRepository;
+        this.userRepository = userRepository;
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
@@ -52,10 +53,18 @@ public class PetService {
     }
     // create new pet in the data base
     @Transactional
-    public String createNewPet(UploadNewPetDto uploadNewPetDto, Users user) throws Exception{
+    public String createNewPet(UploadNewPetDto uploadNewPetDto, Long userId) throws Exception{
+        if (userId == null){
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Double age = calculatePetAge(uploadNewPetDto.getBirthDate());
+        Integer calculateDailyWalkoutTime = 0;
+        if (uploadNewPetDto.getPetType().equals(PetType.DOG)){
+
+        }
         Image image = imageService.uploadImage(uploadNewPetDto.getPetImage(), uploadNewPetDto.getPetName());
-        PetDailyNutritionRequirementsResponse petDailyIntake = calculatePetIntake( uploadNewPetDto.getPetWeightKg(), age, uploadNewPetDto.getPetType(), uploadNewPetDto.getNeutered());
+        PetDailyNutritionRequirementsResponse petDailyIntake = calculatePetIntake( uploadNewPetDto.getPetWeightKg(), age, uploadNewPetDto.getPetType(), uploadNewPetDto.getNeutered(), uploadNewPetDto.isTendToBeAFattyPet());
         Pet pet = Pet.builder()
                 .petType(uploadNewPetDto.getPetType())
                 .petName(uploadNewPetDto.getPetName())
@@ -67,6 +76,7 @@ public class PetService {
                 .proteinBalance(petDailyIntake.getProtein())
                 .fatBalance(petDailyIntake.getFat())
                 .image(image)
+                .user(user)
                 .build();
         petRepository.save(pet);
         return "Pet created successfully";
@@ -113,12 +123,13 @@ public class PetService {
             Double weight,
             Double age,
             PetType petType,
-            boolean isNeutered
+            boolean isNeutered,
+            boolean isTendToBeAFattyPet
     ) {
         double rer = 70 * Math.pow(weight, 0.75);
         double calorieFactor;
 
-        boolean isDogPuppyEarly = age < 0.33;       // עד ~4 חודשים
+        boolean isDogPuppyEarly = age < 0.33; // עד ~4 חודשים
         boolean isDogPuppyLate = age >= 0.33 && age < 1.0;
         boolean isKitten = age < 1.0;
 
@@ -137,6 +148,11 @@ public class PetService {
                     fatPer1000Kcal = 21.3;
                 } else {
                     calorieFactor = isNeutered ? 1.6 : 1.8;
+
+                    if (isTendToBeAFattyPet) {
+                        calorieFactor -= 0.2;
+                    }
+
                     proteinPer1000Kcal = 45.0;
                     fatPer1000Kcal = 13.8;
                 }
@@ -149,6 +165,11 @@ public class PetService {
                     fatPer1000Kcal = 22.5;
                 } else {
                     calorieFactor = isNeutered ? 1.2 : 1.4;
+
+                    if (isTendToBeAFattyPet) {
+                        calorieFactor -= 0.1;
+                    }
+
                     proteinPer1000Kcal = 65.0;
                     fatPer1000Kcal = 22.5;
                 }
@@ -159,7 +180,6 @@ public class PetService {
         }
 
         double dailyCalories = rer * calorieFactor;
-
         double dailyProteinGrams = (dailyCalories / 1000.0) * proteinPer1000Kcal;
         double dailyFatGrams = (dailyCalories / 1000.0) * fatPer1000Kcal;
 

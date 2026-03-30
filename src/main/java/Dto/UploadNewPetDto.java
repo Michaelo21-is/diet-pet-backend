@@ -1,12 +1,12 @@
 package Dto;
 
+import Enums.ActivityLevel;
 import Enums.PetType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
@@ -20,5 +20,8 @@ public class UploadNewPetDto {
     private LocalDate birthDate;
     private Boolean neutered;
     private MultipartFile petImage;
-    private boolean TendToBeAFattyPet;
+    private boolean tendToBeAFattyPet;
+    private ActivityLevel activityLevel;
+    private Double averageWalkoutDistance;
+    private Double averageWalkoutTime;
 }
