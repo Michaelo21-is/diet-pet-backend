@@ -18,10 +18,11 @@ public class UploadNewPetDto {
     private String petBreed;
     private Double petWeightKg;
     private LocalDate birthDate;
-    private Boolean neutered;
+    private boolean neutered;
     private MultipartFile petImage;
     private boolean tendToBeAFattyPet;
     private ActivityLevel activityLevel;
     private Double averageWalkoutDistance;
     private Double averageWalkoutTime;
+    private boolean hasYard;
 }

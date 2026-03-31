@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDate;
 
 @Data
@@ -29,10 +30,19 @@ public class PetDailyIntake {
     private Double dailyFat;
 
     @Column(nullable = false, name = "intake_date")
-    private LocalDate intakeDate;
+    private Instant intakeDate;
 
-    @Column(nullable = false, name = "daily_walkout")
-    private Integer dailyWalkout;
+    @Column(name = "daily_balance_calories")
+    private Double dailyBalanceCalories;
+
+    @Column(name = "daily_protein_balance")
+    private Double dailyProteinBalance;
+
+    @Column(name = "daily_fat_balance")
+    private Double dailyFatBalance;
+
+
+
 
     @OneToOne
     @JoinColumn(name = "pet_id")
