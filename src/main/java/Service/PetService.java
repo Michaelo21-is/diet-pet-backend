@@ -4,10 +4,7 @@ import Dto.UploadNewPetDto;
 import Entity.*;
 import Enums.PetType;
 import Repository.*;
-import Response.AiAnalyzePictureResponse;
-import Response.AiAnalyzeRecommendedWalkoutResponse;
-import Response.PetDailyNutritionRequirementsResponse;
-import Response.PetOverviewResponse;
+import Response.*;
 import Util.PetAgeUtils;
 import Util.PetNutritionUtils;
 import org.springframework.stereotype.Service;
@@ -28,9 +25,10 @@ public class PetService {
     private final PetFoodTrackerRepository petFoodTrackerRepository;
     private final UserRepository userRepository;
     private final DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository;
+    private final PetDailyIntakeRepository petDailyIntakeRepository;
     public PetService(PetRepository petRepository , DogBreedRepository dogBreedRepository, CatBreedRepository catBreedRepository
             , ImageService imageService, OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository, UserRepository userRepository
-    , DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository) {
+    , DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository, PetDailyIntakeRepository petDailyIntakeRepository) {
         this.petRepository = petRepository;
         this.dogBreedRepository = dogBreedRepository;
         this.catBreedRepository = catBreedRepository;
@@ -39,6 +37,7 @@ public class PetService {
         this.petFoodTrackerRepository = petFoodTrackerRepository;
         this.userRepository = userRepository;
         this.dogWalkOutSuggestionRepository = dogWalkOutSuggestionRepository;
+        this.petDailyIntakeRepository = petDailyIntakeRepository;
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
@@ -130,7 +129,39 @@ public class PetService {
         petFoodTrackerRepository.save(aiAnalyze);
         return aiAnalyzePictureResponse;
     }
-
+    // get daily daily intake and if its not exist create a new one
+    @Transactional
+    public GetPetDailyTrackResponse getPetDailyTrackResponse(Long userId){
+        if (userId == null){
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Instant startOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).atStartOfDay(ZoneId.of(user.getTimeZone())).toInstant();
+        Instant endOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(user.getTimeZone())).minusNanos(1).toInstant();
+        PetDailyIntake petDailyTracker = petDailyIntakeRepository.findByUserId(userId, startOfDay, endOfDay)
+                .orElse(null);
+        if (petDailyTracker == null){
+            Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
+            petDailyTracker = new PetDailyIntake();
+            petDailyTracker.setDailyCalorie(0.0);
+            petDailyTracker.setDailyProtein(0.0);
+            petDailyTracker.setDailyFat(0.0);
+            petDailyTracker.setDailyBalanceCalories(pet.getCalorieBalance());
+            petDailyTracker.setDailyProteinBalance(pet.getProteinBalance());
+            petDailyTracker.setDailyFatBalance(pet.getFatBalance());
+            petDailyTracker.setIntakeDate(Instant.now());
+            petDailyTracker.setPet(pet);
+            petDailyIntakeRepository.save(petDailyTracker);
+        }
+        return GetPetDailyTrackResponse.builder()
+                .caloriesBalance(petDailyTracker.getDailyBalanceCalories())
+                .proteinBalance(petDailyTracker.getDailyProteinBalance())
+                .fatBalance(petDailyTracker.getDailyFatBalance())
+                .caloriesIntake(petDailyTracker.getDailyCalorie())
+                .proteinIntake(petDailyTracker.getDailyProtein())
+                .fatIntake(petDailyTracker.getDailyFat())
+                .build();
+    }
 
 
 

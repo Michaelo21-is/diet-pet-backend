@@ -1,5 +1,6 @@
 package Repository;
 
+import Entity.DogDailyWalkoutTrack;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -7,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Repository
 public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWalkoutTrackRepository, Long> {
@@ -28,4 +30,6 @@ public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWa
             @Param("distanceWalked") Double distanceWalked,
             @Param("walkoutTimeToTake") Double walkoutTimeToTake
     );
+    @Query("select d from DogDailyWalkoutTrack d where d.pet.user.id = :userId and d.intakeDate between :startOfDay and :endOfDay")
+    Optional<DogDailyWalkoutTrack> findByUserId(Long userId, Instant startOfDay, Instant endOfDay);
 }

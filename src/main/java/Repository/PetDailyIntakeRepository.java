@@ -4,7 +4,11 @@ import Entity.PetDailyIntake;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.time.Instant;
+import java.util.Optional;
 
 @Repository
 public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, Long> {
@@ -25,4 +29,17 @@ public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, 
             @org.springframework.data.repository.query.Param("burnedCalories") Double burnedCalories,
             @org.springframework.data.repository.query.Param("protein") Double protein
     );
+    @Query("""
+    select p
+    from PetDailyIntake p
+    where p.pet.user.id = :userId
+      and p.intakeDate between :startOfDay and :endOfDay
+""")
+    Optional<PetDailyIntake> findByUserId(
+            @Param("userId") Long userId,
+            @Param("startOfDay") Instant startOfDay,
+            @Param("endOfDay") Instant endOfDay
+    );
+
+
 }

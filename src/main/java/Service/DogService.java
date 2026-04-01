@@ -2,10 +2,14 @@ package Service;
 
 import Dto.StartAWalkOutDto;
 import Entity.DogDailyWalkoutTrack;
+import Entity.DogWalkOutSuggestion;
 import Entity.Pet;
+import Entity.Users;
 import Repository.DogDailyWalkoutTrackRepository;
+import Repository.DogWalkOutSuggestionRepository;
 import Repository.PetDailyIntakeRepository;
 import Repository.PetRepository;
+import Response.GetDogDailyWalkoutTrackResponse;
 import Response.PetDailyNutritionRequirementsResponse;
 import Response.WalkOutOverviewResponse;
 import Util.PetAgeUtils;
@@ -24,11 +28,14 @@ public class DogService {
     private final PetRepository petRepository;
     private final PetDailyIntakeRepository petDailyIntakeRepository;
     private final DogDailyWalkoutTrackRepository dogDailyWalkoutTrackRepository;
-    public DogService(OpenAiService openAiService , PetRepository petRepository, DogDailyWalkoutTrackRepository dogDailyWalkoutTrackRepository , PetDailyIntakeRepository petDailyIntakeRepository) {
+    private final DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository;
+    public DogService(OpenAiService openAiService , PetRepository petRepository, DogDailyWalkoutTrackRepository dogDailyWalkoutTrackRepository
+            , PetDailyIntakeRepository petDailyIntakeRepository, DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository) {
         this.openAiService = openAiService;
         this.petRepository = petRepository;
         this.dogDailyWalkoutTrackRepository = dogDailyWalkoutTrackRepository;
         this.petDailyIntakeRepository = petDailyIntakeRepository;
+        this.dogWalkOutSuggestionRepository = dogWalkOutSuggestionRepository;
     }
     @Transactional
     public WalkOutOverviewResponse startAWalk(Long userId, StartAWalkOutDto walkStats) throws Exception{
@@ -48,5 +55,34 @@ public class DogService {
        petDailyIntakeRepository.updatePetIntakeAfterWalkOut(pet.getId(), startOfDay, endOfDay, calculatedAfterWalk.getFat(), calculatedAfterWalk.getProtein(), calculatedAfterWalk.getCalories());
 
        return response;
+    }
+    @Transactional
+    public GetDogDailyWalkoutTrackResponse getDogDailyWalkoutTrackResponse(Long userId){
+        if (userId == null){
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+        DogWalkOutSuggestion dogWalkOutSuggestion = dogWalkOutSuggestionRepository
+                .findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("User doesnt have a dog walk out suggestion need to build a new one"));
+        Instant startOfDay = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).atStartOfDay(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).toInstant();
+        Instant endOfDay = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).minusNanos(1).toInstant();
+        DogDailyWalkoutTrack dogDailyWalkoutTrack = dogDailyWalkoutTrackRepository.findByUserId(userId, startOfDay, endOfDay)
+                .orElse(null);
+        if (dogDailyWalkoutTrack == null){
+            Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
+            dogDailyWalkoutTrack = new DogDailyWalkoutTrack();
+            dogDailyWalkoutTrack.setWalkoutTimeToTake(0.0);
+            dogDailyWalkoutTrack.setWalkoutTime(0);
+            dogDailyWalkoutTrack.setDistanceWalked(0.0);
+            dogDailyWalkoutTrack.setPet(pet);
+            dogDailyWalkoutTrack.setIntakeDate(Instant.now());
+        }
+        return GetDogDailyWalkoutTrackResponse.builder()
+                .dailyBalanceDailyWalkout(dogWalkOutSuggestion.getRecommendedWalkoutTime())
+                .dailyBalanceWalkoutDistance(dogWalkOutSuggestion.getRecommendedDailyDistanceKm())
+                .dailyBalanceWalkoutTime(dogWalkOutSuggestion.getRecommendedWalkoutTimeToTake())
+                .dailyIntakeWalkout(dogDailyWalkoutTrack.getWalkoutTime())
+                .dailyIntakeWalkoutDistance(dogDailyWalkoutTrack.getDistanceWalked())
+                .dailyIntakeWalkoutTime(dogDailyWalkoutTrack.getWalkoutTimeToTake())
+                .build();
     }
 }

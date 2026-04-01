@@ -66,8 +66,8 @@ public class AuthService {
         else{emailService.sendToChangePassword(email, generatedCode);}
         return "2FA code sent successfully";
     }
-    public String verify2FA(Users user, String code){
-        TwoFactorEmail twoFactorEmail = twoFactorEmailRepository.findByUserId(user.getId())
+    public String verify2FA(Long userid, String code){
+        TwoFactorEmail twoFactorEmail = twoFactorEmailRepository.findByUserId(userid)
                 .orElseThrow(() -> new RuntimeException("2FA code not found"));
         if (twoFactorEmail.getExpirationTime().isBefore(Instant.now())){
             return "2FA code expired";
