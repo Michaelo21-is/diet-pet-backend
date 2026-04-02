@@ -10,6 +10,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,6 +96,8 @@ public class JwtService {
     public void deleteToken(Users user){
         tokenRepository.deleteAllByUser_Id(user.getId());
     }
+
+
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
@@ -102,8 +106,38 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-    public Long getUserIdFromAccessToken(String accessToken) {
-        Claims claims = extractAllClaims(accessToken);
+    public String extractTokenFromRequest(HttpServletRequest request, TokenType tokenType) {
+        String token;
+
+        if (tokenType == TokenType.ACCESS) {
+            token = request.getHeader("accessToken");
+            if (token == null || token.isBlank()) {
+                throw new IllegalArgumentException("Access token not found in request headers");
+            }
+            token = token.replace("Bearer ", "");
+        } else if (tokenType == TokenType.TEMPORARY) {
+            token = request.getHeader("tempToken");
+            if (token == null || token.isBlank()) {
+                throw new IllegalArgumentException("Temp token not found in request headers");
+            }
+        } else if (tokenType == TokenType.REFRESH) {
+            token = request.getHeader("refreshToken");
+            if (token == null || token.isBlank()) {
+                throw new IllegalArgumentException("Access token not found in request headers");
+            }
+            token = token.replace("Bearer ", "");
+        }
+        else{throw new IllegalArgumentException("Unsupported token type");}
+
+        return token;
+    }
+
+    public Long getUserIdFromAccessTokenAndTempToken(HttpServletRequest request, TokenType tokenType) {
+        if (TokenType.REFRESH.equals(tokenType)) {
+            throw new IllegalArgumentException("Refresh token cannot be used to extract user ID in this method only from entity");
+        }
+        String token = extractTokenFromRequest(request, tokenType);
+        Claims claims = extractAllClaims(token);
         Object userId = claims.get("userId");
         if (userId == null) {
             return null;
@@ -111,7 +145,8 @@ public class JwtService {
         return Long.valueOf(userId.toString());
     }
     @Transactional
-    public AuthResponse renewAccessToken(String refreshToken){
+    public AuthResponse renewAccessToken(HttpServletRequest request){
+        String refreshToken = extractTokenFromRequest(request, TokenType.REFRESH);
         JwtToken jwtToken = tokenRepository.findByRefreshToken(refreshToken)
                 .orElse(null);
         if (jwtToken == null || jwtToken.getExpirationDateRefreshToken().isBefore(Instant.now())) {

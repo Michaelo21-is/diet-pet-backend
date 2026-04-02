@@ -1,5 +1,6 @@
 package Service;
 
+import Dto.AnalyzeFoodPictureDto;
 import Dto.UploadNewPetDto;
 import Entity.*;
 import Enums.PetType;
@@ -102,19 +103,20 @@ public class PetService {
                 .build();
     }
     @Transactional
-    public AiAnalyzePictureResponse uploadPictureOfFoodForPet(MultipartFile file, Long userId, Double grams, Double age) throws Exception{
+    public AiAnalyzePictureResponse uploadPictureOfFoodForPet(Long userId, AnalyzeFoodPictureDto data) throws Exception{
         if (userId == null){
             throw new IllegalArgumentException("User ID cannot be null");
         }
-        if (file.isEmpty()) {
+        if (data.getFile().isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
         Pet pet = petRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
-        String contentType = file.getContentType();
+        String contentType = data.getFile().getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File must be an image");
         }
-        AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(file, grams, pet.getPetBreed(), pet.getPetType(), age);
+        Double age = PetAgeUtils.calculatePetAge(pet.getBirthDate());
+        AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(data.getFile(), data.getGrams(), pet.getPetBreed(), pet.getPetType(), age, data.getFoodName());
         PetFoodTracker aiAnalyze = PetFoodTracker
                 .builder()
                 .pet(pet)
@@ -162,9 +164,5 @@ public class PetService {
                 .fatIntake(petDailyTracker.getDailyFat())
                 .build();
     }
-
-
-
-
 
 }

@@ -68,7 +68,7 @@ public class PetAiPromptBuilderUtils {
 
     }
 
-    public String buildPromptForAnazlyzingImage(Double grams, String petBreed, PetType petType, Double age) {
+    public String buildPromptForAnazlyzingImage(Double grams, String petBreed, PetType petType, Double age, String foodName) {
         String gramsInstruction = (grams == null)
                 ? """
               The grams field was not provided by the user.
@@ -76,49 +76,69 @@ public class PetAiPromptBuilderUtils {
               """
                 : "The exact food weight is " + grams + " grams. Use this exact value in the grams field.";
 
-        String petContext = """
-            Pet details:
-            - Pet type: %s
-            - Pet breed: %s
-            - Pet age: %s years
+        String foodNameInstruction = (foodName == null)
+                ? """
+              The food name was not provided by the user.
+              Identify the food from the image as accurately as possible and fill the foodName field.
+              """
+                : "The user provided the food name: " + foodName + ". Use this exact value in the foodName field.";
 
-            Use these pet details when evaluating whether this food is appropriate, safe, and healthy for this specific pet.
-            Consider the pet type, breed, and age when writing the aiReview and assigning the foodScore and foodSafetyLevel.
-            """
+        String petContext = """
+        Pet details:
+        - Pet type: %s
+        - Pet breed: %s
+        - Pet age: %s years
+
+        Use these pet details when evaluating whether this food is appropriate, safe, and healthy for this specific pet.
+        Consider the pet type, breed, and age when writing the aiReview and assigning the foodScore and foodSafetyLevel.
+        """
                 .formatted(
-                        petType ,
-                        petBreed ,
+                        petType,
+                        petBreed,
                         age
                 );
 
         return """
-            Analyze the attached pet food image.
+        Analyze the attached pet food image.
 
-            %s
+        %s
 
-            Return ONLY valid JSON with this exact shape:
-            {
-              "calories": 0.0,
-              "protein": 0.0,
-              "fat": 0.0,
-              "foodName": "",
-              "grams": 0.0,
-              "foodScore": 0,
-              "foodSafetyLevel": "SAFE",
-              "aiReview": ""
-            }
+        %s
 
-            Rules:
-            - calories, protein, fat, grams must be numbers
-            - foodScore must be integer 1-100
-            - aiReview should be short
-            - no markdown
-            - no extra text
-            - Evaluate the food for this specific pet, not in general
-            - If the food looks unsafe or unsuitable for the pet, reflect that in foodSafetyLevel, foodScore, and aiReview
+        %s
 
-            %s
-            """.formatted(petContext, gramsInstruction);
+        Return ONLY valid JSON with this exact shape:
+        {
+          "calories": 0.0,
+          "protein": 0.0,
+          "fat": 0.0,
+          "foodName": "",
+          "grams": 0.0,
+          "foodScore": 0,
+          "foodSafetyLevel": "SAFE",
+          "aiReview": ""
+        }
+
+        Rules:
+        - calories, protein, fat, grams must be numbers
+        - foodScore must be an integer from 1 to 100
+        - foodName must always be a short string
+        - aiReview should be short
+        - no markdown
+        - no extra text
+        - Evaluate the food for this specific pet, not in general
+        - If the food looks unsafe or unsuitable for the pet, reflect that in foodSafetyLevel, foodScore, and aiReview
+        - If the image is unclear, use the best reasonable estimate
+
+        Allowed foodSafetyLevel values:
+        - SAFE
+        - CAUTION
+        - UNSAFE
+        """.formatted(
+                petContext,
+                gramsInstruction,
+                foodNameInstruction
+        );
     }
     public String buildPromptForAWalk(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevel activityLevel){
         String walkContext = """

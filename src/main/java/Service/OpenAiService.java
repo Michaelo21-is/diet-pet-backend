@@ -58,10 +58,10 @@ public class OpenAiService {
         return objectMapper.readValue(json, AiAnalyzeRecommendedWalkoutResponse.class);
     }
 
-    public AiAnalyzePictureResponse analyzeFoodPicture(MultipartFile file, Double grams, String petBreed, PetType petType, Double age) throws Exception {
+    public AiAnalyzePictureResponse analyzeFoodPicture(MultipartFile file, Double grams, String petBreed, PetType petType, Double age, String foodName) throws Exception {
 
         String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
-        String prompt = PetAiPromptBuilderUtils.buildPromptForAnazlyzingImage(grams, petBreed, petType, age);
+        String prompt = PetAiPromptBuilderUtils.buildPromptForAnazlyzingImage(grams, petBreed, petType, age, foodName);
         String contentType = file.getContentType();
 
         List<ResponseInputItem> inputItems = List.of(

@@ -5,9 +5,12 @@ import Dto.RegisterDetailsDto;
 import Entity.TwoFactorEmail;
 import Entity.Users;
 import Enums.Role;
+import Enums.TokenType;
 import Enums.TwoFactorType;
 import Repository.TwoFactorEmailRepository;
 import Repository.UserRepository;
+import Response.RegisterResponse;
+import Response.SignInResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,23 +26,31 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final TwoFactorEmailRepository twoFactorEmailRepository;
+    private final JwtService jwtService;
 
-
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService , TwoFactorEmailRepository twoFactorEmailRepository) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService
+            , TwoFactorEmailRepository twoFactorEmailRepository, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.twoFactorEmailRepository = twoFactorEmailRepository;
+        this.jwtService = jwtService;
     }
     // sign up user checking if the email is already created then encode passowrd then save the user
     @Transactional
-    public String RegisterUser(RegisterDetailsDto registerDetailsDto){
+    public RegisterResponse RegisterUser(RegisterDetailsDto registerDetailsDto){
         if(userRepository.existsByEmail(registerDetailsDto.getEmail())){
-            return "Email already exists";
+            return RegisterResponse.builder()
+                    .message("Email already exists in the system")
+                    .tempToken(null)
+                    .build();
         }
         String encodedPassword = passwordEncoder.encode(registerDetailsDto.getPassword());
         if(registerDetailsDto.getTimeZone() == null){
-            return "please give access to your location";
+            return RegisterResponse.builder()
+                    .message("please give acessible time zone for the user")
+                    .tempToken(null)
+                    .build();
         }
         Users users = Users.builder()
                 .name(registerDetailsDto.getName())
@@ -49,12 +60,17 @@ public class AuthService {
                 .timeZone(registerDetailsDto.getTimeZone())
                 .dateOfCreation(LocalDate.now(ZoneId.of("Asia/Jerusalem")))
                 .build();
-        setTwoFactor(registerDetailsDto.getEmail(), users);
+        setTwoFactor(users.getId());
         userRepository.save(users);
-        return "User created successfully";
+        String TempToken = jwtService.generateToken(users, TokenType.TEMPORARY);
+        return RegisterResponse.builder()
+                .message("User created successfully")
+                .tempToken(TempToken)
+                .build();
     }
     @Transactional
-    public String setTwoFactor(String email, Users user){
+    public String setTwoFactor( Long userId){
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         String generatedCode = String.valueOf((int)(Math.random() * 900000) + 100000);
         TwoFactorEmail twoFactorEmail = TwoFactorEmail.builder()
                 .user(user)
@@ -62,35 +78,66 @@ public class AuthService {
                 .generatedCode(generatedCode)
                 .build();
         twoFactorEmailRepository.save(twoFactorEmail);
-        if (twoFactorEmail.equals(TwoFactorType.VERIFY_EMAIL)) {emailService.sendVerifyEmail(email, generatedCode);}
-        else{emailService.sendToChangePassword(email, generatedCode);}
+        if (twoFactorEmail.equals(TwoFactorType.VERIFY_EMAIL)) {emailService.sendVerifyEmail(user.getEmail(), generatedCode);}
+        else{emailService.sendToChangePassword(user.getEmail(), generatedCode);}
         return "2FA code sent successfully";
     }
-    public String verify2FA(Long userid, String code){
+    public SignInResponse verify2FA(Long userid, String code){
+        if (userid == null || code == null){
+            throw new IllegalArgumentException("User ID and code cannot be null");
+        }
+        Users user = userRepository.findById(userid).orElseThrow(() -> new IllegalArgumentException("User not found"));
         TwoFactorEmail twoFactorEmail = twoFactorEmailRepository.findByUserId(userid)
                 .orElseThrow(() -> new RuntimeException("2FA code not found"));
         if (twoFactorEmail.getExpirationTime().isBefore(Instant.now())){
-            return "2FA code expired";
+            twoFactorEmailRepository.delete(twoFactorEmail);
+            return SignInResponse.builder()
+                    .accessToken(null)
+                    .refreshToken(null)
+                    .message("2FA code expired")
+                    .build();
         }
-        if (twoFactorEmail.getGeneratedCode().equals(code)){
-            return "2FA code verified successfully";
+        if (!twoFactorEmail.getGeneratedCode().equals(code)){
+            return SignInResponse.builder()
+                    .accessToken(null)
+                    .refreshToken(null)
+                    .message("Invalid code")
+                    .build();
         }
         twoFactorEmailRepository.delete(twoFactorEmail);
-        return "Invalid 2FA code";
+        return SignInResponse.builder()
+                .accessToken(jwtService.generateToken(user, TokenType.ACCESS))
+                .refreshToken(jwtService.generateToken(user, TokenType.REFRESH))
+                .message("2FA code verified successfully")
+                .build();
     }
-    public String login(LoginDto loginDto){
+    public SignInResponse login(LoginDto loginDto){
         Users user = userRepository.findByEmail(loginDto.getEmail())
                 .orElse(null);
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
-            return "Login successful";
+            return SignInResponse.builder()
+                    .accessToken(jwtService.generateToken(user, TokenType.ACCESS))
+                    .refreshToken(jwtService.generateToken(user, TokenType.REFRESH))
+                    .message("Login successful")
+                    .build();
         }
-        return "email or password is incorrect";
+        return SignInResponse.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .message("Invalid email or password")
+                .build();
     }
     @Transactional
-    public String setChangePassword(Users user, String newPassword){
+    public String setChangePassword(Long userId, String newPassword){
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
         userRepository.save(user);
         return "Password changed successfully";
+    }
+    @Transactional
+    public void signOut(Long userId){
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        jwtService.deleteToken(user);
     }
 }
