@@ -49,17 +49,15 @@ public class Pet {
     @Column(nullable = false, name = "fat_balance")
     private Double fatBalance;
 
-    @Column(nullable = false, name = "pet_walkout_balance")
-    private Integer petWalkoutBalance;
-
-    @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "image_id")
     private Image image;
 
     @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private PetDailyIntake petDailyIntake;
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PetWalkOut> petWalkOut;
+    private List<DogWalkOut> dogWalkOut;
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PetFoodTracker> petFoodTracker;

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterDetailsDto {
-    private String name;
     private String email;
     private String password;
     private String timeZone;

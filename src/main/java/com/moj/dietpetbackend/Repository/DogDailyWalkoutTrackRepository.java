@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Repository
-public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWalkoutTrackRepository, Long> {
+public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWalkoutTrack, Long> {
 
     @Modifying
     @Query("""

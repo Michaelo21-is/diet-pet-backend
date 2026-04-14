@@ -15,7 +15,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "pet_walk_out")
-public class PetWalkOut {
+public class DogWalkOut {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;

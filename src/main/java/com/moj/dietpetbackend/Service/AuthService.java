@@ -53,7 +53,6 @@ public class AuthService {
                     .build();
         }
         Users users = Users.builder()
-                .name(registerDetailsDto.getName())
                 .email(registerDetailsDto.getEmail())
                 .role(Role.REGULAR_USER)
                 .password(encodedPassword)

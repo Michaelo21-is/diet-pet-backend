@@ -13,7 +13,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender javaMailSender;
 
-    @Value("${MAIL_USERNAME}")
+    @Value("${EMAIL_USERNAME}")
     private String sender;
 
     public String sendVerifyEmail(String email, String code) {

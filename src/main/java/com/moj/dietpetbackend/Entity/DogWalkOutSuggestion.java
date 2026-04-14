@@ -30,6 +30,7 @@ public class DogWalkOutSuggestion {
     @Column(nullable = false, name = "ai_review")
     private String aiReview;
 
-    @OneToOne(mappedBy = "pet_id")
+    @OneToOne
+    @JoinColumn(name = "pet_id")
     private Pet pet;
 }
