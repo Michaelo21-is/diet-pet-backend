@@ -22,8 +22,6 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false, name = "name")
-    private String name;
 
     @Column(unique = true, nullable = false, name = "email")
     private String email;

@@ -23,6 +23,10 @@ public class AuthController {
     }
     @PostMapping("/sign-up")
     public ResponseEntity<RegisterResponse> signUp(@RequestBody RegisterDetailsDto registerDetailsDto) {
+        System.out.println("sign-up endpoint reached");
+        System.out.println("email: " + registerDetailsDto.getEmail());
+        System.out.println("password: " + registerDetailsDto.getPassword());
+        System.out.println("timeZone: " + registerDetailsDto.getTimeZone());
         RegisterResponse response = authService.RegisterUser(registerDetailsDto);
         return ResponseEntity.ok(response);
     }

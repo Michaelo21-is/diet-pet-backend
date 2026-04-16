@@ -111,7 +111,7 @@ public class JwtService {
         if (tokenType == TokenType.ACCESS) {
             token = request.getHeader("accessToken");
             if (token == null || token.isBlank()) {
-                throw new IllegalArgumentException("Access token not found in request headers");
+               return null;
             }
             token = token.replace("Bearer ", "");
         } else if (tokenType == TokenType.TEMPORARY) {
@@ -136,6 +136,7 @@ public class JwtService {
             throw new IllegalArgumentException("Refresh token cannot be used to extract user ID in this method only from entity");
         }
         String token = extractTokenFromRequest(request, tokenType);
+        // using it to indicate that token is null
         Claims claims = extractAllClaims(token);
         Object userId = claims.get("userId");
         if (userId == null) {

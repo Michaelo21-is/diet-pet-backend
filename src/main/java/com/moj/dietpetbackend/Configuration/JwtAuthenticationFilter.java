@@ -27,6 +27,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userRepository = userRepository;
     }
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+
+        return path.equals("/api/auth/sign-in")
+                || path.equals("/api/auth/sign-up");
+    }
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // get auth from current authentication from spring security contex
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -39,7 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Create an Authentication object for the authenticated user
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
-                                user.getName(),
+                                user.getEmail(),
                                 null,
                                 List.of(new SimpleGrantedAuthority(user.getRole().name()))
                         );

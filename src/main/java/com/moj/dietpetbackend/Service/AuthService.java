@@ -59,8 +59,8 @@ public class AuthService {
                 .timeZone(registerDetailsDto.getTimeZone())
                 .dateOfCreation(LocalDate.now(ZoneId.of("Asia/Jerusalem")))
                 .build();
-        setTwoFactor(users.getId());
-        userRepository.save(users);
+        Users savedUser = userRepository.save(users);
+        setTwoFactor(savedUser.getId());
         String TempToken = jwtService.generateToken(users, TokenType.TEMPORARY);
         return RegisterResponse.builder()
                 .message("User created successfully")
