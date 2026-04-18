@@ -4,6 +4,7 @@ package com.moj.dietpetbackend.Controller;
 import com.moj.dietpetbackend.Dto.LoginDto;
 import com.moj.dietpetbackend.Dto.RegisterDetailsDto;
 import com.moj.dietpetbackend.Enums.TokenType;
+import com.moj.dietpetbackend.Enums.TwoFactorType;
 import com.moj.dietpetbackend.Response.RegisterResponse;
 import com.moj.dietpetbackend.Response.SignInResponse;
 import com.moj.dietpetbackend.Service.AuthService;
@@ -23,11 +24,8 @@ public class AuthController {
     }
     @PostMapping("/sign-up")
     public ResponseEntity<RegisterResponse> signUp(@RequestBody RegisterDetailsDto registerDetailsDto) {
-        System.out.println("sign-up endpoint reached");
-        System.out.println("email: " + registerDetailsDto.getEmail());
-        System.out.println("password: " + registerDetailsDto.getPassword());
-        System.out.println("timeZone: " + registerDetailsDto.getTimeZone());
         RegisterResponse response = authService.RegisterUser(registerDetailsDto);
+        System.out.println("response: " + response);
         return ResponseEntity.ok(response);
     }
 
@@ -40,7 +38,7 @@ public class AuthController {
     @PostMapping("/set_two_factor")
     public ResponseEntity<?> setTwoFactor(HttpServletRequest request){
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
-        authService.setTwoFactor(userId);
+        authService.setTwoFactor(userId, TwoFactorType.CHANGE_PASSWORD);
         return ResponseEntity.ok().build();
     }
     // using it both for change password and verify email

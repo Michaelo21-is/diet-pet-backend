@@ -16,11 +16,11 @@ public class EmailService {
     @Value("${EMAIL_USERNAME}")
     private String sender;
 
-    public String sendVerifyEmail(String email, String code) {
+    public void sendVerifyEmail(String email, String code) {
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
+            System.out.println("setting up to send email");
             String htmlContent = """
                     <!DOCTYPE html>
                     <html>
@@ -77,14 +77,13 @@ public class EmailService {
             helper.setTo(email);
             helper.setSubject("2FA Code");
             helper.setText(htmlContent, true);
-
+            System.out.println("send email");
             javaMailSender.send(message);
-            return "Email sent successfully";
         } catch (Exception e) {
-            return "Failed to send email try again later or contact support";
+            throw new RuntimeException("Failed to send email", e);
         }
     }
-    public String sendToChangePassword(String email, String code){
+    public void sendToChangePassword(String email, String code){
         try {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -147,9 +146,8 @@ public class EmailService {
             helper.setText(htmlContent, true);
 
             javaMailSender.send(message);
-            return "Email sent successfully";
         } catch (Exception e) {
-            return "Failed to send email try again later or contact support";
+            throw new RuntimeException("Failed to send email", e);
         }
     }
 }

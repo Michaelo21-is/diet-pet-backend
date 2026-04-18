@@ -39,19 +39,22 @@ public class AuthService {
     // sign up user checking if the email is already created then encode passowrd then save the user
     @Transactional
     public RegisterResponse RegisterUser(RegisterDetailsDto registerDetailsDto){
+        // checking if the user exist in the system
         if(userRepository.existsByEmail(registerDetailsDto.getEmail())){
             return RegisterResponse.builder()
                     .message("Email already exists in the system")
                     .tempToken(null)
                     .build();
         }
-        String encodedPassword = passwordEncoder.encode(registerDetailsDto.getPassword());
         if(registerDetailsDto.getTimeZone() == null){
             return RegisterResponse.builder()
                     .message("please give acessible time zone for the user")
                     .tempToken(null)
                     .build();
         }
+
+        String encodedPassword = passwordEncoder.encode(registerDetailsDto.getPassword());
+
         Users users = Users.builder()
                 .email(registerDetailsDto.getEmail())
                 .role(Role.REGULAR_USER)
@@ -59,8 +62,9 @@ public class AuthService {
                 .timeZone(registerDetailsDto.getTimeZone())
                 .dateOfCreation(LocalDate.now(ZoneId.of("Asia/Jerusalem")))
                 .build();
+
         Users savedUser = userRepository.save(users);
-        setTwoFactor(savedUser.getId());
+        setTwoFactor(savedUser.getId(), TwoFactorType.VERIFY_EMAIL);
         String TempToken = jwtService.generateToken(users, TokenType.TEMPORARY);
         return RegisterResponse.builder()
                 .message("User created successfully")
@@ -68,7 +72,7 @@ public class AuthService {
                 .build();
     }
     @Transactional
-    public String setTwoFactor( Long userId){
+    public void setTwoFactor( Long userId, TwoFactorType twoFactorType){
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         String generatedCode = String.valueOf((int)(Math.random() * 900000) + 100000);
         TwoFactorEmail twoFactorEmail = TwoFactorEmail.builder()
@@ -77,9 +81,8 @@ public class AuthService {
                 .generatedCode(generatedCode)
                 .build();
         twoFactorEmailRepository.save(twoFactorEmail);
-        if (twoFactorEmail.equals(TwoFactorType.VERIFY_EMAIL)) {emailService.sendVerifyEmail(user.getEmail(), generatedCode);}
+        if (TwoFactorType.VERIFY_EMAIL.equals(twoFactorType)) {emailService.sendVerifyEmail(user.getEmail(), generatedCode);}
         else{emailService.sendToChangePassword(user.getEmail(), generatedCode);}
-        return "2FA code sent successfully";
     }
     public SignInResponse verify2FA(Long userid, String code){
         if (userid == null || code == null){

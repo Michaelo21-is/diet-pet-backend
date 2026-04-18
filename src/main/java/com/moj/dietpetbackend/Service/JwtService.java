@@ -75,8 +75,7 @@ public class JwtService {
 
 
     @Transactional
-    public void saveToken(String accessToken,String refreshToken, Users user ) {
-        Instant accessExpiry = Instant.now().plus(15, ChronoUnit.MINUTES);
+    public void saveToken(String refreshToken, Users user ) {
         Instant refreshExpiry = Instant.now().plus(14, ChronoUnit.DAYS);
 
         JwtToken jwtToken = tokenRepository.findByUser_Id(user.getId())
@@ -154,7 +153,7 @@ public class JwtService {
         }
         String newAccessToken = generateToken(jwtToken.getUser(), TokenType.ACCESS);
         String newRefreshToken = generateToken(jwtToken.getUser(), TokenType.REFRESH);
-        saveToken(newAccessToken, newRefreshToken, jwtToken.getUser());
+        saveToken(newRefreshToken, jwtToken.getUser());
 
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
