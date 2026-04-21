@@ -65,36 +65,33 @@ public class PetService {
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Double age = PetAgeUtils.calculatePetAge(uploadNewPetDto.getBirthDate());
         Image image = imageService.uploadImage(uploadNewPetDto.getPetImage(), uploadNewPetDto.getPetName());
-        PetDailyNutritionRequirementsResponse petDailyIntake = PetNutritionUtils.calculatePetIntake( uploadNewPetDto.getPetWeightKg(), age, uploadNewPetDto.getPetType(), uploadNewPetDto.isNeutered(), uploadNewPetDto.isTendToBeAFattyPet());
+        AiAnalyzeRecommendedForPetResponse response = new AiAnalyzeRecommendedForPetResponse();
+        response = openAiService.aiAnalyzeRecommendedForPetResponse(uploadNewPetDto.getPetBreed(), age, uploadNewPetDto.isNeutered(), uploadNewPetDto.getPetWeightKg(), uploadNewPetDto.isHasYard(), uploadNewPetDto.getPetType(), uploadNewPetDto.isTendToBeFat());
         Pet pet = Pet.builder()
-                .petType(uploadNewPetDto.getPetType())
-                .petName(uploadNewPetDto.getPetName())
-                .petBreed(uploadNewPetDto.getPetBreed())
-                .petWeightKg(uploadNewPetDto.getPetWeightKg())
-                .neutered(uploadNewPetDto.isNeutered())
-                .birthDate(uploadNewPetDto.getBirthDate())
-                .calorieBalance(petDailyIntake.getCalories())
-                .proteinBalance(petDailyIntake.getProtein())
-                .fatBalance(petDailyIntake.getFat())
-                .image(image)
-                .user(user)
-                .build();
+            .petType(uploadNewPetDto.getPetType())
+            .petName(uploadNewPetDto.getPetName())
+            .petBreed(uploadNewPetDto.getPetBreed())
+            .petWeightKg(uploadNewPetDto.getPetWeightKg())
+            .neutered(uploadNewPetDto.isNeutered())
+            .birthDate(uploadNewPetDto.getBirthDate())
+            .calorieBalance(response.getRecommendedDailyCalories())
+            .proteinBalance(response.getRecommendedDailyProtein())
+            .fatBalance(response.getRecommendedDailyFat())
+            .image(image)
+            .user(user)
+            .build();
         petRepository.save(pet);
-        AiAnalyzeRecommendedWalkoutResponse response = new AiAnalyzeRecommendedWalkoutResponse();
-        if (uploadNewPetDto.getPetType().equals(PetType.DOG)){
-            response = openAiService.calculateHowManyTimeTheDogNeedTOGoOut(uploadNewPetDto.getPetBreed(), age, uploadNewPetDto.isNeutered(), uploadNewPetDto.getPetWeightKg(), uploadNewPetDto.isHasYard());
-            DogWalkOutSuggestion dogWalkOutTracking = DogWalkOutSuggestion.builder()
-                    .recommendedWalkoutTimeToTake(response.getRecommendedWalkoutTimeToTake())
-                    .recommendedDailyDistanceKm(response.getRecommendedWalkoutDistance())
-                    .aiReview(response.getAiReview())
-                    .pet(pet)
-                    .build();
-            dogWalkOutSuggestionRepository.save(dogWalkOutTracking);
-        }
+        DogWalkOutSuggestion dogWalkOutTracking = DogWalkOutSuggestion.builder()
+                .recommendedWalkoutTimeToTake(response.getRecommendedWalkoutTimeToTake())
+                .recommendedDailyDistanceKm(response.getRecommendedWalkoutDistance())
+                .aiReview(response.getAiReview())
+                .pet(pet)
+                .build();
+        dogWalkOutSuggestionRepository.save(dogWalkOutTracking);
         return PetOverviewResponse.builder()
-                .calorie(petDailyIntake.getCalories())
-                .protein(petDailyIntake.getProtein())
-                .fat(petDailyIntake.getFat())
+                .calorie(response.getRecommendedDailyCalories())
+                .protein(response.getRecommendedDailyProtein())
+                .fat(response.getRecommendedDailyFat())
                 .recommendedWalkoutDistance(response.getRecommendedWalkoutDistance())
                 .recommendedWalkoutTime(response.getRecommendedWalkoutTime())
                 .recommendedWalkoutTimeToTake(response.getRecommendedWalkoutTimeToTake())

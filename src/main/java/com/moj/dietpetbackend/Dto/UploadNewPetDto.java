@@ -1,6 +1,5 @@
 package com.moj.dietpetbackend.Dto;
 
-import com.moj.dietpetbackend.Enums.ActivityLevel;
 import com.moj.dietpetbackend.Enums.PetType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,9 +19,6 @@ public class UploadNewPetDto {
     private LocalDate birthDate;
     private boolean neutered;
     private MultipartFile petImage;
-    private boolean tendToBeAFattyPet;
-    private ActivityLevel activityLevel;
-    private Double averageWalkoutDistance;
-    private Double averageWalkoutTime;
+    private boolean tendToBeFat;
     private boolean hasYard;
 }

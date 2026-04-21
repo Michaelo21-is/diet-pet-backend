@@ -1,6 +1,6 @@
 package com.moj.dietpetbackend.Enums;
 
-public enum ActivityLevel {
+public enum ActivityLevels {
     CHILLWALK,
     PLAYWALK,
     INTENSESPORT

@@ -1,5 +1,6 @@
 package com.moj.dietpetbackend.Response;
 
+import com.moj.dietpetbackend.Enums.ActivityLevels;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,5 +13,6 @@ import lombok.NoArgsConstructor;
 public class WalkOutOverviewResponse {
     private Double caloriesBurned;
     private Integer equivalentStandardWalks;
+    private ActivityLevels activityLevel;
     private String aiReview;
 }

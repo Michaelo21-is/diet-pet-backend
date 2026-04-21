@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
-@Data
+@Data 
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -21,7 +21,10 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
-
+    
+    @Builder.Default
+    @Column(nullable = false, name = "user_verify_email" )
+    private boolean userVerifyEmail = false;
 
     @Column(unique = true, nullable = false, name = "email")
     private String email;

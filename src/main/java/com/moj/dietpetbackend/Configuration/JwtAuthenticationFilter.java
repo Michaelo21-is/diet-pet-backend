@@ -39,7 +39,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         // only try authenticate if the user is null or anonymous
         if (auth == null || auth instanceof AnonymousAuthenticationToken) {
-            Long userId =  jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
+            String accessToken = request.getHeader("accessToken");
+            String tempToken = request.getHeader("tempToken");
+
+            Long userId = null;
+
+            if (accessToken != null && !accessToken.isBlank()) {
+                userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
+            } else if (tempToken != null && !tempToken.isBlank()) {
+                userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.TEMPORARY);
+            }
 
             if (userId != null) {
                 Users user = userRepository.findById(userId).orElse(null);

@@ -7,6 +7,7 @@ import com.moj.dietpetbackend.Entity.Users;
 import com.moj.dietpetbackend.Enums.Role;
 import com.moj.dietpetbackend.Enums.TokenType;
 import com.moj.dietpetbackend.Enums.TwoFactorType;
+import com.moj.dietpetbackend.Repository.PetRepository;
 import com.moj.dietpetbackend.Repository.TwoFactorEmailRepository;
 import com.moj.dietpetbackend.Repository.UserRepository;
 import com.moj.dietpetbackend.Response.RegisterResponse;
@@ -27,14 +28,15 @@ public class AuthService {
     private final EmailService emailService;
     private final TwoFactorEmailRepository twoFactorEmailRepository;
     private final JwtService jwtService;
-
+    private final PetRepository petRepository;
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService
-            , TwoFactorEmailRepository twoFactorEmailRepository, JwtService jwtService) {
+            , TwoFactorEmailRepository twoFactorEmailRepository, JwtService jwtService,  PetRepository petRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.twoFactorEmailRepository = twoFactorEmailRepository;
         this.jwtService = jwtService;
+        this.petRepository = petRepository;
     }
     // sign up user checking if the email is already created then encode passowrd then save the user
     @Transactional
@@ -75,11 +77,18 @@ public class AuthService {
     public void setTwoFactor( Long userId, TwoFactorType twoFactorType){
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         String generatedCode = String.valueOf((int)(Math.random() * 900000) + 100000);
-        TwoFactorEmail twoFactorEmail = TwoFactorEmail.builder()
-                .user(user)
-                .expirationTime(Instant.now().plus(15, ChronoUnit.MINUTES))
-                .generatedCode(generatedCode)
-                .build();
+        TwoFactorEmail twoFactorEmail = twoFactorEmailRepository.findByUserId(userId)
+                .orElse(null);
+        if (twoFactorEmail == null){
+            twoFactorEmail = TwoFactorEmail.builder()
+                    .user(user)
+                    .expirationTime(Instant.now().plus(15, ChronoUnit.MINUTES))
+                    .generatedCode(generatedCode)
+                    .build();
+            twoFactorEmailRepository.save(twoFactorEmail);
+        }
+        twoFactorEmail.setGeneratedCode(generatedCode);
+        twoFactorEmail.setExpirationTime(Instant.now().plus(15, ChronoUnit.MINUTES));
         twoFactorEmailRepository.save(twoFactorEmail);
         if (TwoFactorType.VERIFY_EMAIL.equals(twoFactorType)) {emailService.sendVerifyEmail(user.getEmail(), generatedCode);}
         else{emailService.sendToChangePassword(user.getEmail(), generatedCode);}
@@ -106,6 +115,8 @@ public class AuthService {
                     .message("Invalid code")
                     .build();
         }
+        user.setUserVerifyEmail(true);
+        userRepository.save(user);
         twoFactorEmailRepository.delete(twoFactorEmail);
         return SignInResponse.builder()
                 .accessToken(jwtService.generateToken(user, TokenType.ACCESS))
@@ -113,19 +124,39 @@ public class AuthService {
                 .message("2FA code verified successfully")
                 .build();
     }
+    @Transactional
     public SignInResponse login(LoginDto loginDto){
         Users user = userRepository.findByEmail(loginDto.getEmail())
-                .orElse(null);
+                .orElse(null);            
         if (user != null && passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+            if (!user.isUserVerifyEmail()) {
+                setTwoFactor(user.getId(), TwoFactorType.VERIFY_EMAIL);
+                return SignInResponse.builder()
+                    .accessToken(null)
+                    .refreshToken(null)
+                    .message("user need to verify email")
+                    .tempToken(jwtService.generateToken(user, TokenType.TEMPORARY))
+                    .build();
+            }
+            if (!petRepository.existsByUserId(user.getId())) {
+                return SignInResponse.builder()
+                        .accessToken(jwtService.generateToken(user, TokenType.ACCESS))
+                        .refreshToken(jwtService.generateToken(user, TokenType.REFRESH))
+                        .message("need to setup the pet")
+                        .tempToken(null)
+                        .build();
+            }
             return SignInResponse.builder()
                     .accessToken(jwtService.generateToken(user, TokenType.ACCESS))
                     .refreshToken(jwtService.generateToken(user, TokenType.REFRESH))
                     .message("Login successful")
+                    .tempToken(null)
                     .build();
         }
         return SignInResponse.builder()
                 .accessToken(null)
                 .refreshToken(null)
+                .tempToken(null)
                 .message("Invalid email or password")
                 .build();
     }

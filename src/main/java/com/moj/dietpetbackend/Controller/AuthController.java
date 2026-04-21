@@ -36,9 +36,9 @@ public class AuthController {
     }
     // for now i will use it only for change password
     @PostMapping("/set_two_factor")
-    public ResponseEntity<?> setTwoFactor(HttpServletRequest request){
-        Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
-        authService.setTwoFactor(userId, TwoFactorType.CHANGE_PASSWORD);
+    public ResponseEntity<?> setTwoFactor(HttpServletRequest request, @RequestParam("type") TwoFactorType type, @RequestParam("tokenType") TokenType tokenType){
+        Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, tokenType);
+        authService.setTwoFactor(userId, type);
         return ResponseEntity.ok().build();
     }
     // using it both for change password and verify email

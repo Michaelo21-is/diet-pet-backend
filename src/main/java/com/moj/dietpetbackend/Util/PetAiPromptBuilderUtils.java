@@ -1,72 +1,133 @@
 package com.moj.dietpetbackend.Util;
-
-import com.moj.dietpetbackend.Enums.ActivityLevel;
+import com.moj.dietpetbackend.Enums.ActivityLevels;
 import com.moj.dietpetbackend.Enums.PetType;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class PetAiPromptBuilderUtils {
-    public String buildPromptForARecommendedWalkout(String petBreed, Double age, boolean neutered, Double wight, boolean hasYard){
-        String petContext = """
-                pet details:
-                - Pet type: DOG
-                - Pet breed: %s
-                - Pet age: %s years
-                - Pet weight: %s kg
-                - Pet has a yard: %s
-                - Pet is neutered: %s
-                """.formatted(
-                petBreed,
-                age ,
-                wight ,
-                hasYard,
-                neutered
-        );
-        return """
-            You are a dog walking recommendation assistant.
+public String buildPromptForPetRecommendation(
+        String petBreed,
+        Double age,
+        boolean neutered,
+        Double weight,
+        boolean hasYard,
+        PetType type,
+        boolean isTendToBeFat
+) {
+    String petContext = """
+            pet details:
+            - Pet type: %s
+            - Pet breed: %s
+            - Pet age: %s years
+            - Pet weight: %s kg
+            - Pet has a yard: %s
+            - Pet is neutered: %s
+            - Pet tends to gain fat easily: %s
+            """.formatted(
+            type,
+            petBreed,
+            age,
+            weight,
+            hasYard,
+            neutered,
+            isTendToBeFat
+    );
 
-            Your task is to estimate a healthy daily walking routine for this dog.
+    if (type == PetType.DOG) {
+        return """
+                You are a pet wellness recommendation assistant.
+
+                Your task is to estimate a healthy daily nutrition and walking routine for this pet.
+
+                %s
+
+                This pet is a DOG.
+                Based on the pet's breed, age, weight, whether it is neutered, whether it has a yard,
+                and whether it tends to gain fat easily, estimate the following:
+                1. Recommended daily calories
+                2. Recommended daily protein in grams
+                3. Recommended daily fat in grams
+                4. How many times per day the dog should go outside
+                5. How many total kilometers the dog should walk per day
+                6. How many total hours of outdoor/walking time the dog should have per day
+                7. A short AI review explaining the recommendation
+
+                Important instructions:
+                - Return only valid JSON
+                - Do not return markdown
+                - Do not explain outside the JSON
+                - Base the answer on a realistic daily recommendation for this specific dog
+                - If the dog has a yard, you may slightly reduce the outdoor walk need, but do not assume yard time fully replaces walks
+                - Younger and more energetic dogs usually need more activity
+                - Older dogs may need shorter or lighter walks
+                - Working, athletic, or highly active breeds may need more activity
+                - If the dog tends to gain fat easily, be slightly more conservative with calorie recommendations
+                - The aiReview must be short and practical
+                - All numeric nutrition fields must be numbers
+                - recommendedWalkoutDistance must be a number
+                - recommendedWalkoutTime must be a number
+                - recommendedWalkoutTimeToTake must be a number
+                - No extra fields
+                - No extra text
+
+                Return JSON in this exact format:
+                {
+                  "recommendedDailyCalories": 0.0,
+                  "recommendedDailyProtein": 0.0,
+                  "recommendedDailyFat": 0.0,
+                  "recommendedWalkoutDistance": 0.0,
+                  "recommendedWalkoutTime": 0.0,
+                  "recommendedWalkoutTimeToTake": 0.0,
+                  "aiReview": ""
+                }
+                """.formatted(petContext);
+    }
+
+    return """
+            You are a pet wellness recommendation assistant.
+
+            Your task is to estimate a healthy daily nutrition routine for this pet.
 
             %s
 
-            Based on the dog's breed, age, weight, whether it is neutered, and whether it has a yard,
-            estimate the following:
-            1. How many times per day the dog should go outside
-            2. How many total kilometers the dog should walk per day
-            3. How many total hours of outdoor/walking time the dog should have per day
+            This pet is a CAT.
+            Based on the pet's breed, age, weight, whether it is neutered, whether it has a yard,
+            and whether it tends to gain fat easily, estimate the following:
+            1. Recommended daily calories
+            2. Recommended daily protein in grams
+            3. Recommended daily fat in grams
             4. A short AI review explaining the recommendation
 
             Important instructions:
             - Return only valid JSON
             - Do not return markdown
             - Do not explain outside the JSON
-            - Base the answer on a realistic daily recommendation for this specific dog
-            - If the dog has a yard, you may slightly reduce the outdoor walk need, but do not assume yard time fully replaces walks
-            - Younger and more energetic dogs usually need more activity
-            - Older dogs may need shorter or lighter walks
-            - Working, athletic, or highly active breeds may need more activity
+            - Base the answer on a realistic daily recommendation for this specific cat
+            - Cats should not receive dog-style walking recommendations
+            - If the cat tends to gain fat easily, be slightly more conservative with calorie recommendations
+            - For cats, the walkout fields must be null
             - The aiReview must be short and practical
+            - recommendedDailyCalories must be a number
+            - recommendedDailyProtein must be a number
+            - recommendedDailyFat must be a number
+            - recommendedWalkoutDistance must be null
+            - recommendedWalkoutTime must be null
+            - recommendedWalkoutTimeToTake must be null
+            - No extra fields
+            - No extra text
 
             Return JSON in this exact format:
             {
-              "recommendedWalkoutDistance": 0.0,
-              "recommendedWalkoutTime": 0.0,
-              "recommendedWalkoutTimeToTake": 0.0,
+              "recommendedDailyCalories": 0.0,
+              "recommendedDailyProtein": 0.0,
+              "recommendedDailyFat": 0.0,
+              "recommendedWalkoutDistance": null,
+              "recommendedWalkoutTime": null,
+              "recommendedWalkoutTimeToTake": null,
               "aiReview": ""
             }
-
-            Field rules:
-            - recommendedWalkoutDistance = total recommended kilometers per day
-            - recommendedWalkoutTime = total recommended hours outside per day
-            - recommendedWalkoutTimeToTake = number of times per day the dog should go outside
-            - aiReview = short summary for the owner
-            - all numeric fields must be numbers
-            - no extra fields
-            - no extra text
             """.formatted(petContext);
-
-
-    }
+}
 
     public String buildPromptForAnazlyzingImage(Double grams, String petBreed, PetType petType, Double age, String foodName) {
         String gramsInstruction = (grams == null)
@@ -140,7 +201,7 @@ public class PetAiPromptBuilderUtils {
                 foodNameInstruction
         );
     }
-    public String buildPromptForAWalk(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevel activityLevel){
+    public String buildPromptForAWalk(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevels activityLevel){
         String walkContext = """
         Pet details:
         - Pet type: DOG
