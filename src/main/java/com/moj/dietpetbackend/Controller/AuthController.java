@@ -5,6 +5,7 @@ import com.moj.dietpetbackend.Dto.LoginDto;
 import com.moj.dietpetbackend.Dto.RegisterDetailsDto;
 import com.moj.dietpetbackend.Enums.TokenType;
 import com.moj.dietpetbackend.Enums.TwoFactorType;
+import com.moj.dietpetbackend.Response.AuthResponse;
 import com.moj.dietpetbackend.Response.RegisterResponse;
 import com.moj.dietpetbackend.Response.SignInResponse;
 import com.moj.dietpetbackend.Service.AuthService;
@@ -54,6 +55,11 @@ public class AuthController {
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         String responseMessage = authService.setChangePassword(userId, newPassword);
         return ResponseEntity.ok(responseMessage);
+    }
+    @PostMapping("/renew-access-token-by-refresh-token")
+    public ResponseEntity<AuthResponse> renewAccessToken(HttpServletRequest request){
+        AuthResponse response = jwtService.renewAccessToken(request);
+        return ResponseEntity.ok(response);
     }
     @DeleteMapping("/sign-out")
     public ResponseEntity<?> signOut(HttpServletRequest request){

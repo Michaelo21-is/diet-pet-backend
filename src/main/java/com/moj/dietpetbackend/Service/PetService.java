@@ -4,7 +4,6 @@ import com.moj.dietpetbackend.Dto.AnalyzeFoodPictureDto;
 import com.moj.dietpetbackend.Dto.UploadNewPetDto;
 import com.moj.dietpetbackend.Enums.PetType;
 import com.moj.dietpetbackend.Util.PetAgeUtils;
-import com.moj.dietpetbackend.Util.PetNutritionUtils;
 import com.moj.dietpetbackend.Entity.*;
 import com.moj.dietpetbackend.Repository.*;
 import com.moj.dietpetbackend.Response.*;
@@ -41,6 +40,7 @@ public class PetService {
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
+        System.out.println("performPrefixToFindABreed prefix: " + prefix + " petType: " + petType );
         if (PetType.DOG.equals(petType)) {
             List<DogBreed> dogBreeds = dogBreedRepository.findTop10ByDogBreedStartingWithIgnoreCase(prefix);
             return dogBreeds.stream()

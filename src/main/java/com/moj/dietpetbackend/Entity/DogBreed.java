@@ -14,7 +14,7 @@ public class DogBreed {
     @Id
     private Long id;
 
-    @Column(nullable = false, name = "DogBreed")
+    @Column(nullable = false, name = "dog_breed")
     private String dogBreed;
 
 }

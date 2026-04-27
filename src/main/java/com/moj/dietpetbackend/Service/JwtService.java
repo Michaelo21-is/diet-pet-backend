@@ -5,9 +5,7 @@ import com.moj.dietpetbackend.Response.AuthResponse;
 import com.moj.dietpetbackend.Entity.JwtToken;
 import com.moj.dietpetbackend.Entity.Users;
 import com.moj.dietpetbackend.Repository.TokenRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
@@ -103,6 +101,7 @@ public class JwtService {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
+
     }
     public String extractTokenFromRequest(HttpServletRequest request, TokenType tokenType) {
         String token;
@@ -135,7 +134,7 @@ public class JwtService {
             throw new IllegalArgumentException("Refresh token cannot be used to extract user ID in this method only from entity");
         }
         String token = extractTokenFromRequest(request, tokenType);
-        // using it to indicate that token is null
+        // Extract the information stored inside the token
         Claims claims = extractAllClaims(token);
         Object userId = claims.get("userId");
         if (userId == null) {

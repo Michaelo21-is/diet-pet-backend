@@ -43,6 +43,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/auth/validate_two_factor").authenticated()
                         .requestMatchers("/api/auth/change_password").authenticated()
                         .requestMatchers("/api/auth/sign-out").authenticated()
+                        .requestMatchers("/api/auth/renew-access-token-by-refresh-token").authenticated()
 
                         // pet endpoints
                         .requestMatchers("/api/pet/perform-prefix-for-breed").authenticated()
