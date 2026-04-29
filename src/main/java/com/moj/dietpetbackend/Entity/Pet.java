@@ -49,10 +49,6 @@ public class Pet {
     @Column(nullable = false, name = "fat_balance")
     private Double fatBalance;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "image_id")
-    private Image image;
-
     @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private PetDailyIntake petDailyIntake;
 

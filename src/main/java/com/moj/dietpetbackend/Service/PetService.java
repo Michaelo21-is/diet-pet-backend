@@ -64,9 +64,9 @@ public class PetService {
         }
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Double age = PetAgeUtils.calculatePetAge(uploadNewPetDto.getBirthDate());
-        Image image = imageService.uploadImage(uploadNewPetDto.getPetImage(), uploadNewPetDto.getPetName());
         AiAnalyzeRecommendedForPetResponse response = new AiAnalyzeRecommendedForPetResponse();
         response = openAiService.aiAnalyzeRecommendedForPetResponse(uploadNewPetDto.getPetBreed(), age, uploadNewPetDto.isNeutered(), uploadNewPetDto.getPetWeightKg(), uploadNewPetDto.isHasYard(), uploadNewPetDto.getPetType(), uploadNewPetDto.isTendToBeFat());
+        System.out.println("createNewPet ai analyze response: " + response);
         Pet pet = Pet.builder()
             .petType(uploadNewPetDto.getPetType())
             .petName(uploadNewPetDto.getPetName())
@@ -77,13 +77,13 @@ public class PetService {
             .calorieBalance(response.getRecommendedDailyCalories())
             .proteinBalance(response.getRecommendedDailyProtein())
             .fatBalance(response.getRecommendedDailyFat())
-            .image(image)
             .user(user)
             .build();
         petRepository.save(pet);
         DogWalkOutSuggestion dogWalkOutTracking = DogWalkOutSuggestion.builder()
-                .recommendedWalkoutTimeToTake(response.getRecommendedWalkoutTimeToTake())
+                .recommendedWalksPerDay(response.getRecommendedWalksPerDay())
                 .recommendedDailyDistanceKm(response.getRecommendedWalkoutDistance())
+                .recommendedWalkDurationMinutes(response.getRecommendedWalkDurationMinutes())
                 .aiReview(response.getAiReview())
                 .pet(pet)
                 .build();
@@ -93,8 +93,8 @@ public class PetService {
                 .protein(response.getRecommendedDailyProtein())
                 .fat(response.getRecommendedDailyFat())
                 .recommendedWalkoutDistance(response.getRecommendedWalkoutDistance())
-                .recommendedWalkoutTime(response.getRecommendedWalkoutTime())
-                .recommendedWalkoutTimeToTake(response.getRecommendedWalkoutTimeToTake())
+                .recommendedWalksPerDay(response.getRecommendedWalksPerDay())
+                .recommendedWalkDurationMinutes(response.getRecommendedWalkDurationMinutes())
                 .aiReview(response.getAiReview())
                 .build();
     }

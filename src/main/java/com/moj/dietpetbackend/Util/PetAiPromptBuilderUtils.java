@@ -65,8 +65,8 @@ public String buildPromptForPetRecommendation(
                 - The aiReview must be short and practical
                 - All numeric nutrition fields must be numbers
                 - recommendedWalkoutDistance must be a number
-                - recommendedWalkoutTime must be a number
-                - recommendedWalkoutTimeToTake must be a number
+                - recommendedWalksPerDay must be a whole number
+                - recommendedWalkDurationMinutes must be a number
                 - No extra fields
                 - No extra text
 
@@ -76,8 +76,8 @@ public String buildPromptForPetRecommendation(
                   "recommendedDailyProtein": 0.0,
                   "recommendedDailyFat": 0.0,
                   "recommendedWalkoutDistance": 0.0,
-                  "recommendedWalkoutTime": 0.0,
-                  "recommendedWalkoutTimeToTake": 0.0,
+                  "recommendedWalksPerDay": 0,
+                  "recommendedWalkDurationMinutes": 0,
                   "aiReview": ""
                 }
                 """.formatted(petContext);

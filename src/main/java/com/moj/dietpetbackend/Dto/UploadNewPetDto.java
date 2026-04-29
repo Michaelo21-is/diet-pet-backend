@@ -18,7 +18,6 @@ public class UploadNewPetDto {
     private Double petWeightKg;
     private LocalDate birthDate;
     private boolean neutered;
-    private MultipartFile petImage;
     private boolean tendToBeFat;
     private boolean hasYard;
 }

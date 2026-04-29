@@ -53,7 +53,7 @@ public class OpenAiService {
                 .orElseThrow(() -> new RuntimeException("No text returned from OpenAI"));
 
         json = cleanJson(json);
-
+        System.out.println("AI raw json: " + json);
         return objectMapper.readValue(json, AiAnalyzeRecommendedForPetResponse.class);
     }
 

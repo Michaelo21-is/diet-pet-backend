@@ -15,8 +15,8 @@ public class UserController {
         this.userService = userService;
     }
     @GetMapping("/isLogedIn")
-    public ResponseEntity<Boolean> isLogedIn(HttpServletRequest request){
-        boolean response = userService.isUserLogedIn(request);
+    public ResponseEntity<String> isLogedIn(HttpServletRequest request){
+        String response = userService.isUserLogedIn(request);
         return ResponseEntity.ok(response);
     }
 }

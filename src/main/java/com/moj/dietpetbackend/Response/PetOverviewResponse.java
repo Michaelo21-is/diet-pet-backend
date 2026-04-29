@@ -17,7 +17,7 @@ public class PetOverviewResponse {
 
     // 2 page walkout recomendtion for the dog
     private Double recommendedWalkoutDistance;
-    private Double recommendedWalkoutTime;
-    private Double recommendedWalkoutTimeToTake;
+    private Integer recommendedWalksPerDay;
+    private Double recommendedWalkDurationMinutes;
     private String aiReview;
 }

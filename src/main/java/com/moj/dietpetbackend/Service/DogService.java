@@ -76,9 +76,9 @@ public class DogService {
             dogDailyWalkoutTrack.setIntakeDate(Instant.now());
         }
         return GetDogDailyWalkoutTrackResponse.builder()
-                .dailyBalanceDailyWalkout(dogWalkOutSuggestion.getRecommendedWalkoutTime())
+                .dailyBalanceDailyWalkout(dogWalkOutSuggestion.getRecommendedWalksPerDay())
                 .dailyBalanceWalkoutDistance(dogWalkOutSuggestion.getRecommendedDailyDistanceKm())
-                .dailyBalanceWalkoutTime(dogWalkOutSuggestion.getRecommendedWalkoutTimeToTake())
+                .dailyBalanceWalkoutTime(dogWalkOutSuggestion.getRecommendedWalkDurationMinutes())
                 .dailyIntakeWalkout(dogDailyWalkoutTrack.getWalkoutTime())
                 .dailyIntakeWalkoutDistance(dogDailyWalkoutTrack.getDistanceWalked())
                 .dailyIntakeWalkoutTime(dogDailyWalkoutTrack.getWalkoutTimeToTake())

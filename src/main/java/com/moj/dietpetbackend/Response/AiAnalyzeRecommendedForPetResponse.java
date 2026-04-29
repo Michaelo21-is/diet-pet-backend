@@ -11,8 +11,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AiAnalyzeRecommendedForPetResponse {
     private Double recommendedWalkoutDistance;
-    private Double recommendedWalkoutTime;
-    private Double recommendedWalkoutTimeToTake;
+    private Integer recommendedWalksPerDay;
+    private Double recommendedWalkDurationMinutes;
     private Double recommendedDailyCalories;
     private Double recommendedDailyFat;
     private Double recommendedDailyProtein;

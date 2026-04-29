@@ -22,10 +22,10 @@ public class DogWalkOutSuggestion {
     private Double recommendedDailyDistanceKm;
 
     @Column(nullable = false, name = "recommended_walkout_distance_km")
-    private Integer recommendedWalkoutTime;
+    private Integer recommendedWalksPerDay;
 
     @Column(nullable = false, name = "recommended_walkout_time_to_take")
-    private Double recommendedWalkoutTimeToTake;
+    private Double recommendedWalkDurationMinutes;
 
     @Column(nullable = false, name = "ai_review")
     private String aiReview;
