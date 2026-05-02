@@ -25,10 +25,4 @@ public class DogController {
         WalkOutOverviewResponse response = dogService.startAWalk(userId, walkStats);
         return ResponseEntity.ok(response);
     }
-    @GetMapping("/get_dog_daily_walk_stats")
-    public ResponseEntity<GetDogDailyWalkoutTrackResponse> getDogDailyWalkoutTrack(HttpServletRequest request){
-        Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
-        GetDogDailyWalkoutTrackResponse response = dogService.getDogDailyWalkoutTrackResponse(userId);
-        return ResponseEntity.ok(response);
-    }
 }

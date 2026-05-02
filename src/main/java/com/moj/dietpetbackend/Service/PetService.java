@@ -19,24 +19,25 @@ public class PetService {
     private final PetRepository petRepository;
     private final DogBreedRepository dogBreedRepository;
     private final CatBreedRepository catBreedRepository;
-    private final ImageService imageService;
     private final OpenAiService openAiService;
     private final PetFoodTrackerRepository petFoodTrackerRepository;
     private final UserRepository userRepository;
+    private final DogService dogService;
     private final DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository;
     private final PetDailyIntakeRepository petDailyIntakeRepository;
     public PetService(PetRepository petRepository , DogBreedRepository dogBreedRepository, CatBreedRepository catBreedRepository
-            , ImageService imageService, OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository, UserRepository userRepository
-    , DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository, PetDailyIntakeRepository petDailyIntakeRepository) {
+            , OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository, UserRepository userRepository
+    , DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository, PetDailyIntakeRepository petDailyIntakeRepository,
+                      DogService dogService) {
         this.petRepository = petRepository;
         this.dogBreedRepository = dogBreedRepository;
         this.catBreedRepository = catBreedRepository;
-        this.imageService = imageService;
         this.openAiService = openAiService;
         this.petFoodTrackerRepository = petFoodTrackerRepository;
         this.userRepository = userRepository;
         this.dogWalkOutSuggestionRepository = dogWalkOutSuggestionRepository;
         this.petDailyIntakeRepository = petDailyIntakeRepository;
+        this.dogService = dogService;
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
@@ -66,7 +67,6 @@ public class PetService {
         Double age = PetAgeUtils.calculatePetAge(uploadNewPetDto.getBirthDate());
         AiAnalyzeRecommendedForPetResponse response = new AiAnalyzeRecommendedForPetResponse();
         response = openAiService.aiAnalyzeRecommendedForPetResponse(uploadNewPetDto.getPetBreed(), age, uploadNewPetDto.isNeutered(), uploadNewPetDto.getPetWeightKg(), uploadNewPetDto.isHasYard(), uploadNewPetDto.getPetType(), uploadNewPetDto.isTendToBeFat());
-        System.out.println("createNewPet ai analyze response: " + response);
         Pet pet = Pet.builder()
             .petType(uploadNewPetDto.getPetType())
             .petName(uploadNewPetDto.getPetName())
@@ -138,8 +138,8 @@ public class PetService {
         Instant endOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(user.getTimeZone())).minusNanos(1).toInstant();
         PetDailyIntake petDailyTracker = petDailyIntakeRepository.findByUserId(userId, startOfDay, endOfDay)
                 .orElse(null);
+        Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
         if (petDailyTracker == null){
-            Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
             petDailyTracker = new PetDailyIntake();
             petDailyTracker.setDailyCalorie(0.0);
             petDailyTracker.setDailyProtein(0.0);
@@ -151,6 +151,18 @@ public class PetService {
             petDailyTracker.setPet(pet);
             petDailyIntakeRepository.save(petDailyTracker);
         }
+        if(pet.getPetType() != PetType.DOG) {
+            return GetPetDailyTrackResponse.builder()
+                    .caloriesBalance(petDailyTracker.getDailyBalanceCalories())
+                    .proteinBalance(petDailyTracker.getDailyProteinBalance())
+                    .fatBalance(petDailyTracker.getDailyFatBalance())
+                    .caloriesIntake(petDailyTracker.getDailyCalorie())
+                    .proteinIntake(petDailyTracker.getDailyProtein())
+                    .fatIntake(petDailyTracker.getDailyFat())
+                    .petType(pet.getPetType())
+                    .build();
+        }
+        GetDogDailyWalkoutTrackResponse dogDailyWalkoutTrackResponse = dogService.getDogDailyWalkoutTrackResponse(userId);
         return GetPetDailyTrackResponse.builder()
                 .caloriesBalance(petDailyTracker.getDailyBalanceCalories())
                 .proteinBalance(petDailyTracker.getDailyProteinBalance())
@@ -158,6 +170,13 @@ public class PetService {
                 .caloriesIntake(petDailyTracker.getDailyCalorie())
                 .proteinIntake(petDailyTracker.getDailyProtein())
                 .fatIntake(petDailyTracker.getDailyFat())
+                .petType(pet.getPetType())
+                .dailyBalanceDailyWalkout(dogDailyWalkoutTrackResponse.getDailyBalanceDailyWalkout())
+                .dailyBalanceWalkoutDistance(dogDailyWalkoutTrackResponse.getDailyBalanceWalkoutDistance())
+                .dailyBalanceWalkoutTime(dogDailyWalkoutTrackResponse.getDailyBalanceWalkoutTime())
+                .dailyIntakeWalkout(dogDailyWalkoutTrackResponse.getDailyIntakeWalkout())
+                .dailyIntakeWalkoutDistance(dogDailyWalkoutTrackResponse.getDailyIntakeWalkoutDistance())
+                .dailyIntakeWalkoutTime(dogDailyWalkoutTrackResponse.getDailyIntakeWalkoutTime())
                 .build();
     }
 

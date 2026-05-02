@@ -57,9 +57,6 @@ public class DogService {
     }
     @Transactional
     public GetDogDailyWalkoutTrackResponse getDogDailyWalkoutTrackResponse(Long userId){
-        if (userId == null){
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
         DogWalkOutSuggestion dogWalkOutSuggestion = dogWalkOutSuggestionRepository
                 .findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("User doesnt have a dog walk out suggestion need to build a new one"));
         Instant startOfDay = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).atStartOfDay(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).toInstant();
