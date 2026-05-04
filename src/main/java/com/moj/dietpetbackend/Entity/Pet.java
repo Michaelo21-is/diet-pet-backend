@@ -49,8 +49,8 @@ public class Pet {
     @Column(nullable = false, name = "fat_balance")
     private Double fatBalance;
 
-    @OneToOne(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private PetDailyIntake petDailyIntake;
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PetDailyIntake> petDailyIntake;
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DogWalkOut> dogWalkOut;

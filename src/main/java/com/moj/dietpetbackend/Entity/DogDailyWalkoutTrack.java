@@ -31,7 +31,7 @@ public class DogDailyWalkoutTrack {
     @Column(name = "intake_date")
     private Instant intakeDate;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "pet_id")
     private Pet pet;
 }

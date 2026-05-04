@@ -25,10 +25,11 @@ public class PetService {
     private final DogService dogService;
     private final DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository;
     private final PetDailyIntakeRepository petDailyIntakeRepository;
+    private final ImageService imageService;
     public PetService(PetRepository petRepository , DogBreedRepository dogBreedRepository, CatBreedRepository catBreedRepository
             , OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository, UserRepository userRepository
     , DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository, PetDailyIntakeRepository petDailyIntakeRepository,
-                      DogService dogService) {
+                      DogService dogService, ImageService imageService) {
         this.petRepository = petRepository;
         this.dogBreedRepository = dogBreedRepository;
         this.catBreedRepository = catBreedRepository;
@@ -38,6 +39,7 @@ public class PetService {
         this.dogWalkOutSuggestionRepository = dogWalkOutSuggestionRepository;
         this.petDailyIntakeRepository = petDailyIntakeRepository;
         this.dogService = dogService;
+        this.imageService = imageService;
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
@@ -113,6 +115,7 @@ public class PetService {
         }
         Double age = PetAgeUtils.calculatePetAge(pet.getBirthDate());
         AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(data.getFile(), data.getGrams(), pet.getPetBreed(), pet.getPetType(), age, data.getFoodName());
+        Image image = imageService.uploadImage(data.getFile(), aiAnalyzePictureResponse.getFoodName());
         PetFoodTracker aiAnalyze = PetFoodTracker
                 .builder()
                 .pet(pet)
@@ -122,6 +125,7 @@ public class PetService {
                 .aiReview(aiAnalyzePictureResponse.getAiReview())
                 .foodScore(aiAnalyzePictureResponse.getFoodScore())
                 .foodSafetyLevel(aiAnalyzePictureResponse.getFoodSafetyLevel())
+                .image(image)
                 .createdAt(Instant.now())
                 .build();
         petFoodTrackerRepository.save(aiAnalyze);
@@ -178,6 +182,26 @@ public class PetService {
                 .dailyIntakeWalkoutDistance(dogDailyWalkoutTrackResponse.getDailyIntakeWalkoutDistance())
                 .dailyIntakeWalkoutTime(dogDailyWalkoutTrackResponse.getDailyIntakeWalkoutTime())
                 .build();
+    }
+    public List<GetPetDailyFoodAndWalkOutResponse> getPetDailyFoodAndWalkOutResponses (Long userId){
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user dosent have a pet"));
+        // for knowing in which time zone is the user in
+        ZoneId zoneId = ZoneId.of(user.getTimeZone());
+        // take the date from the user timezone
+        Instant startOfDay = LocalDate.now(zoneId)
+                .atStartOfDay(zoneId) // make it to begin of the day for example 2026-05-04 00:00:00 Asia/Jerusalem
+                .toInstant(); // convert it to Instant
+
+        // take the date from the user timezone and then add one to the and minus nano second and then convert it to instant
+        Instant endOfDay = LocalDate.now(zoneId)
+                .plusDays(1)
+                .atStartOfDay(zoneId)
+                .minusNanos(1)
+                .toInstant();
+        List<PetFoodTracker> petFoodTrackers = petFoodTrackerRepository.findByPetIdAndCreatedAtBetween(pet.getId(), startOfDay, endOfDay);
+
+
     }
 
 }

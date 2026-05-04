@@ -46,6 +46,10 @@ public class PetFoodTracker {
     @Column(nullable = false, name = "created_at")
     private Instant createdAt;
 
+    @ManyToOne()
+    @JoinColumn(name = "image_id")
+    private Image image;
+
     @ManyToOne
     @JoinColumn(name = "pet_id")
     private Pet pet;

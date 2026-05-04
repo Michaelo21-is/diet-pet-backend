@@ -14,6 +14,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "dog_daily_intake")
+// is for tracking the balance of the pet diet
 public class PetDailyIntake {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -43,7 +44,7 @@ public class PetDailyIntake {
 
 
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "pet_id")
     private Pet pet;
 

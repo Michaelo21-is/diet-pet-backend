@@ -15,6 +15,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "pet_walk_out")
+// document the walkout seassion
 public class DogWalkOut {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
