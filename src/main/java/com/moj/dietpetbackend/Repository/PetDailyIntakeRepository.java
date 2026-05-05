@@ -32,14 +32,15 @@ public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, 
     @Query("""
     select p
     from PetDailyIntake p
-    where p.pet.user.id = :userId
+    where p.pet.id = :petId
       and p.intakeDate between :startOfDay and :endOfDay
 """)
-    Optional<PetDailyIntake> findByUserId(
-            @Param("userId") Long userId,
+    Optional<PetDailyIntake> findByPetIdAndIntakeDateBetween(
+            @Param("petId") Long petId,
             @Param("startOfDay") Instant startOfDay,
             @Param("endOfDay") Instant endOfDay
     );
+
 
 
 }

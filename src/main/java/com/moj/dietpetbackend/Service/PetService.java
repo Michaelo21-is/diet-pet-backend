@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
@@ -26,10 +27,11 @@ public class PetService {
     private final DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository;
     private final PetDailyIntakeRepository petDailyIntakeRepository;
     private final ImageService imageService;
+    private final DocumentDogDailyActivityRepository documentDogDailyActivityRepository;
     public PetService(PetRepository petRepository , DogBreedRepository dogBreedRepository, CatBreedRepository catBreedRepository
             , OpenAiService openAiService , PetFoodTrackerRepository petFoodTrackerRepository, UserRepository userRepository
     , DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository, PetDailyIntakeRepository petDailyIntakeRepository,
-                      DogService dogService, ImageService imageService) {
+                      DogService dogService, ImageService imageService, DocumentDogDailyActivityRepository documentDogDailyActivityRepository) {
         this.petRepository = petRepository;
         this.dogBreedRepository = dogBreedRepository;
         this.catBreedRepository = catBreedRepository;
@@ -40,6 +42,7 @@ public class PetService {
         this.petDailyIntakeRepository = petDailyIntakeRepository;
         this.dogService = dogService;
         this.imageService = imageService;
+        this.documentDogDailyActivityRepository = documentDogDailyActivityRepository;
     }
     // performing prefix de on the pet type
     public List<String> performPrefixToFindABreed(String prefix, PetType petType) {
@@ -67,7 +70,7 @@ public class PetService {
         }
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Double age = PetAgeUtils.calculatePetAge(uploadNewPetDto.getBirthDate());
-        AiAnalyzeRecommendedForPetResponse response = new AiAnalyzeRecommendedForPetResponse();
+        AiAnalyzeFoodRecommendedForPetResponse response = new AiAnalyzeFoodRecommendedForPetResponse();
         response = openAiService.aiAnalyzeRecommendedForPetResponse(uploadNewPetDto.getPetBreed(), age, uploadNewPetDto.isNeutered(), uploadNewPetDto.getPetWeightKg(), uploadNewPetDto.isHasYard(), uploadNewPetDto.getPetType(), uploadNewPetDto.isTendToBeFat());
         Pet pet = Pet.builder()
             .petType(uploadNewPetDto.getPetType())
@@ -101,7 +104,7 @@ public class PetService {
                 .build();
     }
     @Transactional
-    public AiAnalyzePictureResponse uploadPictureOfFoodForPet(Long userId, AnalyzeFoodPictureDto data) throws Exception{
+    public AiAnalyzePictureFoodResponse uploadPictureOfFoodForPet(Long userId, AnalyzeFoodPictureDto data) throws Exception{
         if (userId == null){
             throw new IllegalArgumentException("User ID cannot be null");
         }
@@ -114,22 +117,23 @@ public class PetService {
             throw new IllegalArgumentException("File must be an image");
         }
         Double age = PetAgeUtils.calculatePetAge(pet.getBirthDate());
-        AiAnalyzePictureResponse aiAnalyzePictureResponse = openAiService.analyzeFoodPicture(data.getFile(), data.getGrams(), pet.getPetBreed(), pet.getPetType(), age, data.getFoodName());
-        Image image = imageService.uploadImage(data.getFile(), aiAnalyzePictureResponse.getFoodName());
+        AiAnalyzePictureFoodResponse aiAnalyzePictureFoodResponse = openAiService.analyzeFoodPicture(data.getFile(), data.getGrams(), pet.getPetBreed(), pet.getPetType(), age, data.getFoodName());
+        Image image = imageService.uploadImage(data.getFile(), aiAnalyzePictureFoodResponse.getFoodName());
         PetFoodTracker aiAnalyze = PetFoodTracker
                 .builder()
                 .pet(pet)
-                .foodName(aiAnalyzePictureResponse.getFoodName())
-                .grams(aiAnalyzePictureResponse.getGrams())
-                .protein(aiAnalyzePictureResponse.getProtein())
-                .aiReview(aiAnalyzePictureResponse.getAiReview())
-                .foodScore(aiAnalyzePictureResponse.getFoodScore())
-                .foodSafetyLevel(aiAnalyzePictureResponse.getFoodSafetyLevel())
+                .foodName(aiAnalyzePictureFoodResponse.getFoodName())
+                .fat(aiAnalyzePictureFoodResponse.getFat())
+                .grams(aiAnalyzePictureFoodResponse.getGrams())
+                .protein(aiAnalyzePictureFoodResponse.getProtein())
+                .aiReview(aiAnalyzePictureFoodResponse.getAiReview())
+                .foodScore(aiAnalyzePictureFoodResponse.getFoodScore())
+                .foodSafetyLevel(aiAnalyzePictureFoodResponse.getFoodSafetyLevel())
                 .image(image)
                 .createdAt(Instant.now())
                 .build();
         petFoodTrackerRepository.save(aiAnalyze);
-        return aiAnalyzePictureResponse;
+        return aiAnalyzePictureFoodResponse;
     }
     // get daily daily intake and if its not exist create a new one
     @Transactional
@@ -140,9 +144,9 @@ public class PetService {
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Instant startOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).atStartOfDay(ZoneId.of(user.getTimeZone())).toInstant();
         Instant endOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(user.getTimeZone())).minusNanos(1).toInstant();
-        PetDailyIntake petDailyTracker = petDailyIntakeRepository.findByUserId(userId, startOfDay, endOfDay)
-                .orElse(null);
         Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
+        PetDailyIntake petDailyTracker = petDailyIntakeRepository.findByPetIdAndIntakeDateBetween(pet.getId(), startOfDay, endOfDay)
+                .orElse(null);
         if (petDailyTracker == null){
             petDailyTracker = new PetDailyIntake();
             petDailyTracker.setDailyCalorie(0.0);
@@ -183,9 +187,11 @@ public class PetService {
                 .dailyIntakeWalkoutTime(dogDailyWalkoutTrackResponse.getDailyIntakeWalkoutTime())
                 .build();
     }
-    public List<GetPetDailyFoodAndWalkOutResponse> getPetDailyFoodAndWalkOutResponses (Long userId){
+    public PetActivityInTheDayResponse getPetDailyFoodAndWalkOutResponses (Long userId){
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user dosent have a pet"));
+        // creating a time format hh is for hour and mm is for minute
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
         // for knowing in which time zone is the user in
         ZoneId zoneId = ZoneId.of(user.getTimeZone());
         // take the date from the user timezone
@@ -200,8 +206,39 @@ public class PetService {
                 .minusNanos(1)
                 .toInstant();
         List<PetFoodTracker> petFoodTrackers = petFoodTrackerRepository.findByPetIdAndCreatedAtBetween(pet.getId(), startOfDay, endOfDay);
-
-
+        List<WhatThePetEatThatDayResponse> foodResponses =
+                petFoodTrackers.stream()
+                        .map(foodTracker -> WhatThePetEatThatDayResponse.builder()
+                                .foodName(foodTracker.getFoodName())
+                                .grams(foodTracker.getGrams())
+                                .protein(foodTracker.getProtein())
+                                .fat(foodTracker.getFat())
+                                .AiReview(foodTracker.getAiReview())
+                                .foodImagePath(foodTracker.getImage().getImageName())
+                                .time(foodTracker.getCreatedAt().atZone(zoneId).format(formatter))
+                                .build())
+                        .toList();
+        if(pet.getPetType() == PetType.CAT){
+            return PetActivityInTheDayResponse.builder()
+                    .whatThePetEatThatDayResponseList(foodResponses)
+                    .dogWalkOutSessionInfoResponseList(null)
+                    .build();
+        }
+        List<DocumentDogDailyActivity> dogDailyWalkoutTracks = documentDogDailyActivityRepository.findByPetIdAndCreatedAtBetween(pet.getId(), startOfDay, endOfDay);
+        List<DogWalkOutSessionInfoResponse> dogWalkoutResponse =
+                dogDailyWalkoutTracks.stream()
+                        .map( dogWalkOut -> DogWalkOutSessionInfoResponse.builder()
+                                .caloriesBurned(dogWalkOut.getCaloriesBurned())
+                                .walkoutDistanceKm(dogWalkOut.getDistanceWalkedKm())
+                                .walkoutTimeMin(dogWalkOut.getDurationMinutes())
+                                .aiReview(dogWalkOut.getAiReview())
+                                .time(dogWalkOut.getCreatedAt().atZone(zoneId).format(formatter))
+                                .build()
+                        ).toList();
+        return PetActivityInTheDayResponse.builder()
+                .whatThePetEatThatDayResponseList(foodResponses)
+                .dogWalkOutSessionInfoResponseList(dogWalkoutResponse)
+                .build();
     }
 
 }

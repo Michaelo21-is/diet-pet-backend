@@ -4,8 +4,9 @@ import com.moj.dietpetbackend.Dto.AnalyzeFoodPictureDto;
 import com.moj.dietpetbackend.Dto.UploadNewPetDto;
 import com.moj.dietpetbackend.Enums.PetType;
 import com.moj.dietpetbackend.Enums.TokenType;
-import com.moj.dietpetbackend.Response.AiAnalyzePictureResponse;
+import com.moj.dietpetbackend.Response.AiAnalyzePictureFoodResponse;
 import com.moj.dietpetbackend.Response.GetPetDailyTrackResponse;
+import com.moj.dietpetbackend.Response.PetActivityInTheDayResponse;
 import com.moj.dietpetbackend.Response.PetOverviewResponse;
 import com.moj.dietpetbackend.Service.JwtService;
 import com.moj.dietpetbackend.Service.PetService;
@@ -36,15 +37,21 @@ public class PetController {
         return ResponseEntity.ok(response);
     }
     @PostMapping("/analyze-food-picture")
-    public ResponseEntity<AiAnalyzePictureResponse> analyzeFoodPicture(HttpServletRequest request, @RequestBody AnalyzeFoodPictureDto analyzeFoodPictureDto) throws Exception{
+    public ResponseEntity<AiAnalyzePictureFoodResponse> analyzeFoodPicture(HttpServletRequest request, @RequestBody AnalyzeFoodPictureDto analyzeFoodPictureDto) throws Exception{
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
-        AiAnalyzePictureResponse response = petService.uploadPictureOfFoodForPet(userId, analyzeFoodPictureDto);
+        AiAnalyzePictureFoodResponse response = petService.uploadPictureOfFoodForPet(userId, analyzeFoodPictureDto);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-pet-daily-diet-track")
     public ResponseEntity<GetPetDailyTrackResponse> getPetDailyTrackResponseResponseEntity(HttpServletRequest request){
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         GetPetDailyTrackResponse response = petService.getPetDailyTrackResponse(userId);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/get-pet-daily-activity")
+    public ResponseEntity<PetActivityInTheDayResponse> getPetDailyActivity(HttpServletRequest request){
+        Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
+        PetActivityInTheDayResponse response = petService.getPetDailyFoodAndWalkOutResponses(userId);
         return ResponseEntity.ok(response);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,7 +19,8 @@ public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWa
         update DogDailyWalkoutTrack d
         set d.WalkoutTimeToTake = :walkoutTime,
             d.DistanceWalked = :distanceWalked,
-            d.WalkoutTimeToTake = :walkoutTimeToTake
+            d.WalkoutTimeToTake = :walkoutTimeToTake,
+            d.calorieBurned = :calorieBurned
         where d.pet.id = :petId
           and d.intakeDate between :startOfDay and :endOfDay
     """)
@@ -28,6 +30,7 @@ public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWa
             @Param("endOfDay") Instant endOfDay,
             @Param("walkoutTime") Integer walkoutTime,
             @Param("distanceWalked") Double distanceWalked,
+            @Param("calorieBurned") Double calorieBurned,
             @Param("walkoutTimeToTake") Double walkoutTimeToTake
     );
     @Query("select d from DogDailyWalkoutTrack d where d.pet.user.id = :userId and d.intakeDate between :startOfDay and :endOfDay")

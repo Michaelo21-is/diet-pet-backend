@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AiAnalyzePictureResponse {
+public class AiAnalyzePictureFoodResponse {
     private Double calories;
     private Double protein;
     private Double fat;

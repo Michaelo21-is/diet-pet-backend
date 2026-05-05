@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AiAnalyzeRecommendedForPetResponse {
+public class AiAnalyzeFoodRecommendedForPetResponse {
     private Double recommendedWalkoutDistance;
     private Integer recommendedWalksPerDay;
     private Double recommendedWalkDurationMinutes;

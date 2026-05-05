@@ -1,7 +1,7 @@
 package com.moj.dietpetbackend.Service;
 import com.moj.dietpetbackend.Enums.ActivityLevels;
 import com.moj.dietpetbackend.Enums.PetType;
-import com.moj.dietpetbackend.Response.AiAnalyzePictureResponse;
+import com.moj.dietpetbackend.Response.AiAnalyzePictureFoodResponse;
 import com.moj.dietpetbackend.Util.PetAiPromptBuilderUtils;
 import com.moj.dietpetbackend.Response.WalkOutOverviewResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +10,7 @@ import com.openai.models.ChatModel;
 import com.openai.models.responses.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import com.moj.dietpetbackend.Response.AiAnalyzeRecommendedForPetResponse;
+import com.moj.dietpetbackend.Response.AiAnalyzeFoodRecommendedForPetResponse;
 
 import java.util.Base64;
 import java.util.List;
@@ -25,7 +25,7 @@ public class OpenAiService {
         this.openAIClient = openAIClient;
         this.objectMapper = objectMapper;
     }
-    public AiAnalyzeRecommendedForPetResponse aiAnalyzeRecommendedForPetResponse(String petBreed, Double age, boolean neutered, Double weight, boolean hasYard, PetType type, boolean isTendToBeFat) throws Exception{
+    public AiAnalyzeFoodRecommendedForPetResponse aiAnalyzeRecommendedForPetResponse(String petBreed, Double age, boolean neutered, Double weight, boolean hasYard, PetType type, boolean isTendToBeFat) throws Exception{
         String prompt = PetAiPromptBuilderUtils.buildPromptForPetRecommendation(petBreed, age, neutered, weight, hasYard, type, isTendToBeFat);
         List<ResponseInputItem> inputItems = List.of(
                 ResponseInputItem.ofMessage(
@@ -54,10 +54,10 @@ public class OpenAiService {
 
         json = cleanJson(json);
         System.out.println("AI raw json: " + json);
-        return objectMapper.readValue(json, AiAnalyzeRecommendedForPetResponse.class);
+        return objectMapper.readValue(json, AiAnalyzeFoodRecommendedForPetResponse.class);
     }
 
-    public AiAnalyzePictureResponse analyzeFoodPicture(MultipartFile file, Double grams, String petBreed, PetType petType, Double age, String foodName) throws Exception {
+    public AiAnalyzePictureFoodResponse analyzeFoodPicture(MultipartFile file, Double grams, String petBreed, PetType petType, Double age, String foodName) throws Exception {
 
         String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
         String prompt = PetAiPromptBuilderUtils.buildPromptForAnazlyzingImage(grams, petBreed, petType, age, foodName);
@@ -94,7 +94,7 @@ public class OpenAiService {
 
         json = cleanJson(json);
 
-        return objectMapper.readValue(json, AiAnalyzePictureResponse.class);
+        return objectMapper.readValue(json, AiAnalyzePictureFoodResponse.class);
     }
     public WalkOutOverviewResponse getWalkOverViewByAi(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevels activityLevel) throws Exception{
          String prompt = PetAiPromptBuilderUtils.buildPromptForAWalk(km, duration, weight, age, petBreed, activityLevel);

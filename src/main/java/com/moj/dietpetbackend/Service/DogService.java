@@ -1,13 +1,11 @@
 package com.moj.dietpetbackend.Service;
 
 import com.moj.dietpetbackend.Dto.StartAWalkOutDto;
+import com.moj.dietpetbackend.Entity.DocumentDogDailyActivity;
 import com.moj.dietpetbackend.Entity.DogDailyWalkoutTrack;
 import com.moj.dietpetbackend.Entity.DogWalkOutSuggestion;
 import com.moj.dietpetbackend.Entity.Pet;
-import com.moj.dietpetbackend.Repository.DogDailyWalkoutTrackRepository;
-import com.moj.dietpetbackend.Repository.DogWalkOutSuggestionRepository;
-import com.moj.dietpetbackend.Repository.PetDailyIntakeRepository;
-import com.moj.dietpetbackend.Repository.PetRepository;
+import com.moj.dietpetbackend.Repository.*;
 import com.moj.dietpetbackend.Response.GetDogDailyWalkoutTrackResponse;
 import com.moj.dietpetbackend.Response.PetDailyNutritionRequirementsResponse;
 import com.moj.dietpetbackend.Response.WalkOutOverviewResponse;
@@ -28,13 +26,16 @@ public class DogService {
     private final PetDailyIntakeRepository petDailyIntakeRepository;
     private final DogDailyWalkoutTrackRepository dogDailyWalkoutTrackRepository;
     private final DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository;
+    private final DocumentDogDailyActivityRepository documentDogDailyActivityRepository;
     public DogService(OpenAiService openAiService , PetRepository petRepository, DogDailyWalkoutTrackRepository dogDailyWalkoutTrackRepository
-            , PetDailyIntakeRepository petDailyIntakeRepository, DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository) {
+            , PetDailyIntakeRepository petDailyIntakeRepository, DogWalkOutSuggestionRepository dogWalkOutSuggestionRepository,
+                      DocumentDogDailyActivityRepository documentDogDailyActivityRepository) {
         this.openAiService = openAiService;
         this.petRepository = petRepository;
         this.dogDailyWalkoutTrackRepository = dogDailyWalkoutTrackRepository;
         this.petDailyIntakeRepository = petDailyIntakeRepository;
         this.dogWalkOutSuggestionRepository = dogWalkOutSuggestionRepository;
+        this.documentDogDailyActivityRepository = documentDogDailyActivityRepository;
     }
     @Transactional
     public WalkOutOverviewResponse startAWalk(Long userId, StartAWalkOutDto walkStats) throws Exception{
@@ -46,14 +47,22 @@ public class DogService {
 
         Instant startOfDay = date.atStartOfDay(zone).toInstant();
         Instant endOfDay = date.plusDays(1).atStartOfDay(zone).minusNanos(1).toInstant();
-       int dailyWalkOutUpdate = dogDailyWalkoutTrackRepository.updateTodayWalkout(pet.getId(), startOfDay, endOfDay, response.getEquivalentStandardWalks(), walkStats.getKm(), walkStats.getDuration());
+       int dailyWalkOutUpdate = dogDailyWalkoutTrackRepository.updateTodayWalkout(pet.getId(), startOfDay, endOfDay, response.getEquivalentStandardWalks(), response.getCaloriesBurned(), walkStats.getKm(), walkStats.getDuration());
        if (dailyWalkOutUpdate == 0){
            throw new IllegalArgumentException("failed to update the daily walk out");
        }
        PetDailyNutritionRequirementsResponse calculatedAfterWalk = PetNutritionUtils.calculateNewPetIntakeAfterWalkOut(response.getCaloriesBurned(), pet.getPetType(), age);
        petDailyIntakeRepository.updatePetIntakeAfterWalkOut(pet.getId(), startOfDay, endOfDay, calculatedAfterWalk.getFat(), calculatedAfterWalk.getProtein(), calculatedAfterWalk.getCalories());
-
-       return response;
+        DocumentDogDailyActivity dogActivity = DocumentDogDailyActivity.builder()
+                .pet(pet)
+                .caloriesBurned(response.getCaloriesBurned())
+                .distanceWalkedKm(walkStats.getKm())
+                .durationMinutes(walkStats.getDuration())
+                .aiReview(response.getAiReview())
+                .createdAt(Instant.now())
+                .build();
+        documentDogDailyActivityRepository.save(dogActivity);
+        return response;
     }
     @Transactional
     public GetDogDailyWalkoutTrackResponse getDogDailyWalkoutTrackResponse(Long userId){

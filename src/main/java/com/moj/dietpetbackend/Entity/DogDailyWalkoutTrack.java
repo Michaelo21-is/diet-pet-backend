@@ -14,8 +14,9 @@ import java.time.Instant;
 @Data
 @Entity
 @Table(name = "dog_daily_walkout")
+// sum up the dog activity
 public class DogDailyWalkoutTrack {
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Id
     private Long id;
 
@@ -30,6 +31,9 @@ public class DogDailyWalkoutTrack {
 
     @Column(name = "intake_date")
     private Instant intakeDate;
+
+    @Column(name = "calorie_burned")
+    private Double calorieBurned;
 
     @ManyToOne
     @JoinColumn(name = "pet_id")

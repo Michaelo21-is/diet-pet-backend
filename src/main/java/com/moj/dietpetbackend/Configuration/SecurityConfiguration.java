@@ -50,6 +50,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/pet/create-new-pet").authenticated()
                         .requestMatchers("/api/pet/analyze-food-picture").authenticated()
                         .requestMatchers("/api/pet/get-pet-daily-diet-track").authenticated()
+                        .requestMatchers("/api/pet/get-pet-daily-activity").authenticated()
 
                         // dog endpoints
                         .requestMatchers("/api/dog/start_walk").authenticated()
