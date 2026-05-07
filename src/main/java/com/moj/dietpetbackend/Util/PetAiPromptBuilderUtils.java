@@ -182,7 +182,7 @@ public String buildPromptForPetRecommendation(
 
         Rules:
         - calories, protein, fat, grams must be numbers
-        - foodScore must be an integer from 1 to 100
+        - foodScore must be an integer from 1 to 100 be very careful with this field
         - foodName must always be a short string
         - aiReview should be short
         - no markdown
@@ -190,7 +190,7 @@ public String buildPromptForPetRecommendation(
         - Evaluate the food for this specific pet, not in general
         - If the food looks unsafe or unsuitable for the pet, reflect that in foodSafetyLevel, foodScore, and aiReview
         - If the image is unclear, use the best reasonable estimate
-
+        - everything must be filled
         Allowed foodSafetyLevel values:
         - SAFE
         - CAUTION

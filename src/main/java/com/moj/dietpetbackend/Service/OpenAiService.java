@@ -72,6 +72,7 @@ public class OpenAiService {
                                         .build())
                                 .addContent(ResponseInputImage.builder()
                                         .imageUrl("data:" + contentType + ";base64," + base64Image)
+                                        .detail(ResponseInputImage.Detail.AUTO)
                                         .build())
                                 .build()
                 )

@@ -29,7 +29,7 @@ public class PetFoodTracker {
     private FoodSafetyLevel foodSafetyLevel;
 
     @Column(nullable = false, name="calories")
-    private Integer calories;
+    private Double calories;
 
     @Column(nullable = false, name="grams")
     private Double grams;

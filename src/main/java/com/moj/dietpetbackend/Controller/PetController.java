@@ -11,6 +11,7 @@ import com.moj.dietpetbackend.Response.PetOverviewResponse;
 import com.moj.dietpetbackend.Service.JwtService;
 import com.moj.dietpetbackend.Service.PetService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,10 +37,12 @@ public class PetController {
         PetOverviewResponse response = petService.createNewPet(uploadNewPetDto, userId);
         return ResponseEntity.ok(response);
     }
-    @PostMapping("/analyze-food-picture")
-    public ResponseEntity<AiAnalyzePictureFoodResponse> analyzeFoodPicture(HttpServletRequest request, @RequestBody AnalyzeFoodPictureDto analyzeFoodPictureDto) throws Exception{
+    @PostMapping(value = "/analyze-food-picture",
+                consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AiAnalyzePictureFoodResponse> analyzeFoodPicture(HttpServletRequest request, @ModelAttribute AnalyzeFoodPictureDto analyzeFoodPictureDto) throws Exception{
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         AiAnalyzePictureFoodResponse response = petService.uploadPictureOfFoodForPet(userId, analyzeFoodPictureDto);
+        System.out.println("response: " + response);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-pet-daily-diet-track")

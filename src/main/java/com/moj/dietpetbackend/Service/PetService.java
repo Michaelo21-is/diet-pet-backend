@@ -105,13 +105,11 @@ public class PetService {
     }
     @Transactional
     public AiAnalyzePictureFoodResponse uploadPictureOfFoodForPet(Long userId, AnalyzeFoodPictureDto data) throws Exception{
-        if (userId == null){
-            throw new IllegalArgumentException("User ID cannot be null");
-        }
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         if (data.getFile().isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
-        Pet pet = petRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+        Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
         String contentType = data.getFile().getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File must be an image");
@@ -122,6 +120,7 @@ public class PetService {
         PetFoodTracker aiAnalyze = PetFoodTracker
                 .builder()
                 .pet(pet)
+                .calories(aiAnalyzePictureFoodResponse.getCalories())
                 .foodName(aiAnalyzePictureFoodResponse.getFoodName())
                 .fat(aiAnalyzePictureFoodResponse.getFat())
                 .grams(aiAnalyzePictureFoodResponse.getGrams())
@@ -133,6 +132,9 @@ public class PetService {
                 .createdAt(Instant.now())
                 .build();
         petFoodTrackerRepository.save(aiAnalyze);
+        Instant startOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).atStartOfDay(ZoneId.of(user.getTimeZone())).toInstant();
+        Instant endOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(user.getTimeZone())).minusNanos(1).toInstant();
+        petDailyIntakeRepository.updatePetIntakeAfterEating(pet.getId(), startOfDay, endOfDay, aiAnalyzePictureFoodResponse.getFat(), aiAnalyzePictureFoodResponse.getCalories(), aiAnalyzePictureFoodResponse.getProtein());
         return aiAnalyzePictureFoodResponse;
     }
     // get daily daily intake and if its not exist create a new one
