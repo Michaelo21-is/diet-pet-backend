@@ -242,5 +242,13 @@ public class PetService {
                 .dogWalkOutSessionInfoResponseList(dogWalkoutResponse)
                 .build();
     }
+    public GetPetDetailsResponse getPetDetails(Long userId){
+        Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return GetPetDetailsResponse.builder()
+                .dailyCaloriesIntake(pet.getCalorieBalance())
+                .dailyProteinIntake(pet.getProteinBalance())
+                .dailyFatIntake(pet.getFatBalance())
+                .build();
+    }
 
 }

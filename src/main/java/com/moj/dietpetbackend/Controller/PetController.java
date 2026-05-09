@@ -4,10 +4,7 @@ import com.moj.dietpetbackend.Dto.AnalyzeFoodPictureDto;
 import com.moj.dietpetbackend.Dto.UploadNewPetDto;
 import com.moj.dietpetbackend.Enums.PetType;
 import com.moj.dietpetbackend.Enums.TokenType;
-import com.moj.dietpetbackend.Response.AiAnalyzePictureFoodResponse;
-import com.moj.dietpetbackend.Response.GetPetDailyTrackResponse;
-import com.moj.dietpetbackend.Response.PetActivityInTheDayResponse;
-import com.moj.dietpetbackend.Response.PetOverviewResponse;
+import com.moj.dietpetbackend.Response.*;
 import com.moj.dietpetbackend.Service.JwtService;
 import com.moj.dietpetbackend.Service.PetService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -55,6 +52,12 @@ public class PetController {
     public ResponseEntity<PetActivityInTheDayResponse> getPetDailyActivity(HttpServletRequest request){
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         PetActivityInTheDayResponse response = petService.getPetDailyFoodAndWalkOutResponses(userId);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("/get-pet-details")
+    public ResponseEntity<GetPetDetailsResponse> getPetDetails (HttpServletRequest request){
+        Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
+        GetPetDetailsResponse response = petService.getPetDetails(userId);
         return ResponseEntity.ok(response);
     }
 }
