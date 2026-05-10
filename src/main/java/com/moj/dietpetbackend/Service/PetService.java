@@ -1,6 +1,7 @@
 package com.moj.dietpetbackend.Service;
 
 import com.moj.dietpetbackend.Dto.AnalyzeFoodPictureDto;
+import com.moj.dietpetbackend.Dto.UpdatePetDto;
 import com.moj.dietpetbackend.Dto.UploadNewPetDto;
 import com.moj.dietpetbackend.Enums.PetType;
 import com.moj.dietpetbackend.Util.PetAgeUtils;
@@ -249,6 +250,37 @@ public class PetService {
                 .dailyProteinIntake(pet.getProteinBalance())
                 .dailyFatIntake(pet.getFatBalance())
                 .build();
+    }
+    public void updatePet(Long userId, UpdatePetDto updatePetDto){
+        boolean changeHasBeenMade = false;
+        Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        ZoneId zoneId = ZoneId.of(user.getTimeZone());
+        Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("pet not exist"));
+        LocalDate localDate = LocalDate.now(zoneId);
+        Instant startOfDay = localDate.atStartOfDay(zoneId).toInstant();
+        Instant endOfDay = localDate.plusDays(1).atStartOfDay(zoneId).minusNanos(1).toInstant();
+        PetDailyIntake petDailyIntake = petDailyIntakeRepository.findByPetIdAndIntakeDateBetween(pet.getId(), startOfDay, endOfDay)
+                .orElseThrow(() -> new IllegalArgumentException("pet daily intake not exist"));
+        if (updatePetDto.getNewCaloriesBalance() != null || updatePetDto.getNewCaloriesBalance() >= 0){
+            pet.setCalorieBalance(updatePetDto.getNewCaloriesBalance());
+            petDailyIntake.setDailyBalanceCalories(updatePetDto.getNewCaloriesBalance());
+            changeHasBeenMade = true;
+        }
+        if (updatePetDto.getNewProteinBalance() != null || updatePetDto.getNewProteinBalance() >= 0){
+            pet.setProteinBalance(updatePetDto.getNewProteinBalance());
+            petDailyIntake.setDailyProteinBalance(updatePetDto.getNewProteinBalance());
+            changeHasBeenMade = true;
+        }
+        if (updatePetDto.getNewFatBalance() != null || updatePetDto.getNewFatBalance() >= 0){
+            pet.setFatBalance(updatePetDto.getNewFatBalance());
+            petDailyIntake.setDailyFat(updatePetDto.getNewFatBalance());
+            changeHasBeenMade = true;
+        }
+        if (changeHasBeenMade) {
+            petRepository.save(pet);
+            petDailyIntakeRepository.save(petDailyIntake);
+        }
+        else throw new IllegalArgumentException("no changes were made check pls the input that the front sent");
     }
 
 }

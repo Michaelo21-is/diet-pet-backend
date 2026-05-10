@@ -1,6 +1,7 @@
 package com.moj.dietpetbackend.Controller;
 
 import com.moj.dietpetbackend.Dto.AnalyzeFoodPictureDto;
+import com.moj.dietpetbackend.Dto.UpdatePetDto;
 import com.moj.dietpetbackend.Dto.UploadNewPetDto;
 import com.moj.dietpetbackend.Enums.PetType;
 import com.moj.dietpetbackend.Enums.TokenType;
@@ -59,5 +60,11 @@ public class PetController {
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         GetPetDetailsResponse response = petService.getPetDetails(userId);
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("/update-pet-details")
+    public ResponseEntity<String> updatePetDetails ( HttpServletRequest request, @RequestBody UpdatePetDto updatePetDto){
+        Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
+        petService.updatePet(userId, updatePetDto);
+        return ResponseEntity.ok("successfully updated pet details");
     }
 }
