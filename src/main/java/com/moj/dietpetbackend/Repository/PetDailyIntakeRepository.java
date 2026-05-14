@@ -59,6 +59,5 @@ public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, 
             @org.springframework.data.repository.query.Param("burnedCalories") Double burnedCalories,
             @org.springframework.data.repository.query.Param("protein") Double protein
     );
-    Optional<PetDailyIntake> findByPet_IdAndIntakeDateBetween(Long petId, Instant startOfDay, Instant endOfDay);
 
 }

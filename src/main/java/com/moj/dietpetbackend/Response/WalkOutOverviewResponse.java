@@ -13,6 +13,5 @@ import lombok.NoArgsConstructor;
 public class WalkOutOverviewResponse {
     private Double caloriesBurned;
     private Integer equivalentStandardWalks;
-    private ActivityLevels activityLevel;
     private String aiReview;
 }

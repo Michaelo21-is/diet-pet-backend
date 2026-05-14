@@ -8,8 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class UpdatePetDto {
-    private Double newCaloriesBalance;
-    private Double newProteinBalance;
-    private Double newFatBalance;
+    private Double petWighetKg;
+    private Double petCalorieBalance;
+    private Double petProteinBalance;
+    private Double petFatBalance;
 
 }

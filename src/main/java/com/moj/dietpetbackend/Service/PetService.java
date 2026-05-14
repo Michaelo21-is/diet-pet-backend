@@ -249,6 +249,7 @@ public class PetService {
                 .dailyCaloriesIntake(pet.getCalorieBalance())
                 .dailyProteinIntake(pet.getProteinBalance())
                 .dailyFatIntake(pet.getFatBalance())
+                .petWeightKg(pet.getPetWeightKg())
                 .build();
     }
     public void updatePet(Long userId, UpdatePetDto updatePetDto){
@@ -261,19 +262,23 @@ public class PetService {
         Instant endOfDay = localDate.plusDays(1).atStartOfDay(zoneId).minusNanos(1).toInstant();
         PetDailyIntake petDailyIntake = petDailyIntakeRepository.findByPetIdAndIntakeDateBetween(pet.getId(), startOfDay, endOfDay)
                 .orElseThrow(() -> new IllegalArgumentException("pet daily intake not exist"));
-        if (updatePetDto.getNewCaloriesBalance() != null || updatePetDto.getNewCaloriesBalance() >= 0){
-            pet.setCalorieBalance(updatePetDto.getNewCaloriesBalance());
-            petDailyIntake.setDailyBalanceCalories(updatePetDto.getNewCaloriesBalance());
+        if (updatePetDto.getPetCalorieBalance() != null || updatePetDto.getPetCalorieBalance() >= 0){
+            pet.setCalorieBalance(updatePetDto.getPetCalorieBalance());
+            petDailyIntake.setDailyBalanceCalories(updatePetDto.getPetCalorieBalance());
             changeHasBeenMade = true;
         }
-        if (updatePetDto.getNewProteinBalance() != null || updatePetDto.getNewProteinBalance() >= 0){
-            pet.setProteinBalance(updatePetDto.getNewProteinBalance());
-            petDailyIntake.setDailyProteinBalance(updatePetDto.getNewProteinBalance());
+        if (updatePetDto.getPetProteinBalance() != null || updatePetDto.getPetProteinBalance() >= 0){
+            pet.setProteinBalance(updatePetDto.getPetProteinBalance());
+            petDailyIntake.setDailyProteinBalance(updatePetDto.getPetProteinBalance());
             changeHasBeenMade = true;
         }
-        if (updatePetDto.getNewFatBalance() != null || updatePetDto.getNewFatBalance() >= 0){
-            pet.setFatBalance(updatePetDto.getNewFatBalance());
-            petDailyIntake.setDailyFat(updatePetDto.getNewFatBalance());
+        if (updatePetDto.getPetFatBalance() != null || updatePetDto.getPetFatBalance() >= 0){
+            pet.setFatBalance(updatePetDto.getPetFatBalance());
+            petDailyIntake.setDailyFat(updatePetDto.getPetFatBalance());
+            changeHasBeenMade = true;
+        }
+        if (updatePetDto.getPetWighetKg() != null || updatePetDto.getPetWighetKg() >= 0){
+            pet.setPetWeightKg(updatePetDto.getPetWighetKg());
             changeHasBeenMade = true;
         }
         if (changeHasBeenMade) {

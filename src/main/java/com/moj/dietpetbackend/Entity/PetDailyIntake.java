@@ -13,7 +13,7 @@ import java.time.Instant;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "dog_daily_intake")
+@Table(name = "pet_daily_intake")
 // is for tracking the balance of the pet diet
 public class PetDailyIntake {
     @Id
