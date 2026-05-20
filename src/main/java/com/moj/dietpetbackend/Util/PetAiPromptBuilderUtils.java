@@ -209,7 +209,7 @@ public String buildPromptForPetRecommendation(
         - Pet age: %s years
         - Pet weight: %s kg
         - Walking distance: %s km
-        - Walking duration: %s hours
+        - Walking duration: %s minutes
         - Activity level: %s
         """.formatted(
                 petBreed ,
@@ -245,13 +245,13 @@ public String buildPromptForPetRecommendation(
             
             Return JSON in this exact format:
             {
-              "burnedCalories": 0.0,
+              "caloriesBurned": 0.0,
               "equivalentStandardWalks": 0,
               "aiReview": ""
             }
             
             Rules:
-               - burnedCalories must be a number
+               - caloriesBurned must be a number
                - equivalentStandardWalks must be a whole number integer
                - equivalentStandardWalks must be at least 1
                - aiReview must be a string

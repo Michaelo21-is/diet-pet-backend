@@ -21,8 +21,10 @@ public class DogController {
     }
     @PostMapping("/start_walk")
     public ResponseEntity<WalkOutOverviewResponse> startAWalk(HttpServletRequest request, @RequestBody StartAWalkOutDto walkStats) throws Exception{
+        System.out.println("start walk have been called");
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         WalkOutOverviewResponse response = dogService.startAWalk(userId, walkStats);
+        System.out.println("response: " + response);
         return ResponseEntity.ok(response);
     }
 }

@@ -17,9 +17,9 @@ public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWa
     @Modifying
     @Query("""
         update DogDailyWalkoutTrack d
-        set d.WalkoutTimeToTake = :walkoutTime,
+        set d.WalkoutTime = :walkoutTime,
             d.DistanceWalked = :distanceWalked,
-            d.WalkoutTimeToTake = :walkoutTimeToTake,
+            d.WalkoutDuration = :walkoutTimeToTake,
             d.calorieBurned = :calorieBurned
         where d.pet.id = :petId
           and d.intakeDate between :startOfDay and :endOfDay

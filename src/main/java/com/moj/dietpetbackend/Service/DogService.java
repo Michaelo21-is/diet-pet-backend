@@ -39,7 +39,7 @@ public class DogService {
     }
     @Transactional
     public WalkOutOverviewResponse startAWalk(Long userId, StartAWalkOutDto walkStats) throws Exception{
-        Pet pet = petRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
+        Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("Pet not found"));
         Double age = PetAgeUtils.calculatePetAge(pet.getBirthDate());
         WalkOutOverviewResponse response = openAiService.getWalkOverViewByAi(walkStats.getKm(), walkStats.getDuration(), pet.getPetWeightKg(), age, pet.getPetBreed(), walkStats.getActivityLevel());
         ZoneId zone = ZoneId.of(pet.getUser().getTimeZone()); // לדוגמה Asia/Jerusalem
@@ -47,9 +47,25 @@ public class DogService {
 
         Instant startOfDay = date.atStartOfDay(zone).toInstant();
         Instant endOfDay = date.plusDays(1).atStartOfDay(zone).minusNanos(1).toInstant();
-       int dailyWalkOutUpdate = dogDailyWalkoutTrackRepository.updateTodayWalkout(pet.getId(), startOfDay, endOfDay, response.getEquivalentStandardWalks(), response.getCaloriesBurned(), walkStats.getKm(), walkStats.getDuration());
-       if (dailyWalkOutUpdate == 0){
-           throw new IllegalArgumentException("failed to update the daily walk out");
+        int dailyWalkOutUpdate = dogDailyWalkoutTrackRepository.updateTodayWalkout(
+                pet.getId(),
+                startOfDay,
+                endOfDay,
+                response.getEquivalentStandardWalks(),
+                walkStats.getKm(),
+                response.getCaloriesBurned(),
+                walkStats.getDuration()
+        );
+        if (dailyWalkOutUpdate == 0){
+           DogDailyWalkoutTrack dogDailyWalkoutTrack = DogDailyWalkoutTrack.builder()
+                   .calorieBurned(response.getCaloriesBurned())
+                   .DistanceWalked(walkStats.getKm())
+                   .WalkoutDuration(walkStats.getDuration())
+                   .pet(pet)
+                   .WalkoutTime(response.getEquivalentStandardWalks())
+                   .intakeDate(Instant.now())
+                   .build();
+           dogDailyWalkoutTrackRepository.save(dogDailyWalkoutTrack);
        }
        PetDailyNutritionRequirementsResponse calculatedAfterWalk = PetNutritionUtils.calculateNewPetIntakeAfterWalkOut(response.getCaloriesBurned(), pet.getPetType(), age);
        petDailyIntakeRepository.updatePetIntakeAfterWalkOut(pet.getId(), startOfDay, endOfDay, calculatedAfterWalk.getFat(), calculatedAfterWalk.getProtein(), calculatedAfterWalk.getCalories());
@@ -75,7 +91,7 @@ public class DogService {
         if (dogDailyWalkoutTrack == null){
             Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
             dogDailyWalkoutTrack = new DogDailyWalkoutTrack();
-            dogDailyWalkoutTrack.setWalkoutTimeToTake(0.0);
+            dogDailyWalkoutTrack.setWalkoutDuration(0.0);
             dogDailyWalkoutTrack.setWalkoutTime(0);
             dogDailyWalkoutTrack.setDistanceWalked(0.0);
             dogDailyWalkoutTrack.setPet(pet);
@@ -87,7 +103,7 @@ public class DogService {
                 .dailyBalanceWalkoutTime(dogWalkOutSuggestion.getRecommendedWalkDurationMinutes())
                 .dailyIntakeWalkout(dogDailyWalkoutTrack.getWalkoutTime())
                 .dailyIntakeWalkoutDistance(dogDailyWalkoutTrack.getDistanceWalked())
-                .dailyIntakeWalkoutTime(dogDailyWalkoutTrack.getWalkoutTimeToTake())
+                .dailyIntakeWalkoutTime(dogDailyWalkoutTrack.getWalkoutDuration())
                 .build();
     }
 }

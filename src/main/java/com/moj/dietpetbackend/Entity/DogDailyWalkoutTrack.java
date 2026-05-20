@@ -20,14 +20,14 @@ public class DogDailyWalkoutTrack {
     @Id
     private Long id;
 
-    @Column(name = "walkout_date")
+    @Column(name = "distance_walked")
     private Double DistanceWalked;
 
     @Column(name = "walkout_time")
     private Integer WalkoutTime;
 
-    @Column(name = "walkout_time_to_take")
-    private Double WalkoutTimeToTake;
+    @Column(name = "walkout_duration")
+    private Double WalkoutDuration;
 
     @Column(name = "intake_date")
     private Instant intakeDate;
