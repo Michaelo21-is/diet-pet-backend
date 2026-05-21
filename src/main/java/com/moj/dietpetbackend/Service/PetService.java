@@ -133,22 +133,26 @@ public class PetService {
                 .createdAt(Instant.now())
                 .build();
         petFoodTrackerRepository.save(aiAnalyze);
-        Instant startOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).atStartOfDay(ZoneId.of(user.getTimeZone())).toInstant();
-        Instant endOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(user.getTimeZone())).minusNanos(1).toInstant();
-        petDailyIntakeRepository.updatePetIntakeAfterEating(pet.getId(), startOfDay, endOfDay, aiAnalyzePictureFoodResponse.getFat(), aiAnalyzePictureFoodResponse.getCalories(), aiAnalyzePictureFoodResponse.getProtein());
+        LocalDate localDate = LocalDate.now(ZoneId.of(user.getTimeZone()));
+        petDailyIntakeRepository.updatePetIntakeAfterEating(pet.getId(), localDate, aiAnalyzePictureFoodResponse.getFat(), aiAnalyzePictureFoodResponse.getCalories(), aiAnalyzePictureFoodResponse.getProtein());
         return aiAnalyzePictureFoodResponse;
     }
     // get daily daily intake and if its not exist create a new one
+    // returning daily walkout stats and neutrino daily balance stats
     @Transactional
-    public GetPetDailyTrackResponse getPetDailyTrackResponse(Long userId){
+    public GetPetDailyTrackResponse getPetDailyTrackResponse(Long userId,String date){
         if (userId == null){
             throw new IllegalArgumentException("User ID cannot be null");
         }
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        Instant startOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).atStartOfDay(ZoneId.of(user.getTimeZone())).toInstant();
-        Instant endOfDay = LocalDate.now(ZoneId.of(user.getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(user.getTimeZone())).minusNanos(1).toInstant();
+        LocalDate localDate;
+        if (date != null){
+            localDate = LocalDate.parse(date);
+        }else{
+            localDate = LocalDate.now(ZoneId.of(user.getTimeZone()));
+        }
         Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
-        PetDailyIntake petDailyTracker = petDailyIntakeRepository.findByPetIdAndIntakeDateBetween(pet.getId(), startOfDay, endOfDay)
+        PetDailyIntake petDailyTracker = petDailyIntakeRepository.findByPetIdAndIntakeDate(pet.getId(), localDate)
                 .orElse(null);
         if (petDailyTracker == null){
             petDailyTracker = new PetDailyIntake();
@@ -158,7 +162,7 @@ public class PetService {
             petDailyTracker.setDailyBalanceCalories(pet.getCalorieBalance());
             petDailyTracker.setDailyProteinBalance(pet.getProteinBalance());
             petDailyTracker.setDailyFatBalance(pet.getFatBalance());
-            petDailyTracker.setIntakeDate(Instant.now());
+            petDailyTracker.setIntakeDate(localDate);
             petDailyTracker.setPet(pet);
             petDailyIntakeRepository.save(petDailyTracker);
         }
@@ -190,7 +194,8 @@ public class PetService {
                 .dailyIntakeWalkoutTime(dogDailyWalkoutTrackResponse.getDailyIntakeWalkoutTime())
                 .build();
     }
-    public PetActivityInTheDayResponse getPetDailyFoodAndWalkOutResponses (Long userId){
+    // returning what the pet has been eating + and if he also petType = is also returning how much he has been walked
+    public PetActivityInTheDayResponse getPetDailyFoodAndWalkOutResponses (Long userId, String date){
         Users user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
         Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user dosent have a pet"));
         // creating a time format hh is for hour and mm is for minute
@@ -198,16 +203,25 @@ public class PetService {
         // for knowing in which time zone is the user in
         ZoneId zoneId = ZoneId.of(user.getTimeZone());
         // take the date from the user timezone
-        Instant startOfDay = LocalDate.now(zoneId)
-                .atStartOfDay(zoneId) // make it to begin of the day for example 2026-05-04 00:00:00 Asia/Jerusalem
-                .toInstant(); // convert it to Instant
+        Instant startOfDay;
+        Instant endOfDay;
+        if (date == null) {
+            startOfDay = LocalDate.now(zoneId)
+                    .atStartOfDay(zoneId) // make it to begin of the day for example 2026-05-04 00:00:00 Asia/Jerusalem
+                    .toInstant(); // convert it to Instant
 
-        // take the date from the user timezone and then add one to the and minus nano second and then convert it to instant
-        Instant endOfDay = LocalDate.now(zoneId)
-                .plusDays(1)
-                .atStartOfDay(zoneId)
-                .minusNanos(1)
-                .toInstant();
+            // take the date from the user timezone and then add one to the and minus nano second and then convert it to instant
+            endOfDay = LocalDate.now(zoneId)
+                    .plusDays(1)
+                    .atStartOfDay(zoneId)
+                    .minusNanos(1)
+                    .toInstant();
+        }
+        else{
+            LocalDate localDate = LocalDate.parse(date);
+            startOfDay = localDate.atStartOfDay(zoneId).toInstant();
+            endOfDay = localDate.plusDays(1).atStartOfDay(zoneId).minusNanos(1).toInstant();
+        }
         List<PetFoodTracker> petFoodTrackers = petFoodTrackerRepository.findByPetIdAndCreatedAtBetween(pet.getId(), startOfDay, endOfDay);
         List<WhatThePetEatThatDayResponse> foodResponses =
                 petFoodTrackers.stream()
@@ -258,9 +272,7 @@ public class PetService {
         ZoneId zoneId = ZoneId.of(user.getTimeZone());
         Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("pet not exist"));
         LocalDate localDate = LocalDate.now(zoneId);
-        Instant startOfDay = localDate.atStartOfDay(zoneId).toInstant();
-        Instant endOfDay = localDate.plusDays(1).atStartOfDay(zoneId).minusNanos(1).toInstant();
-        PetDailyIntake petDailyIntake = petDailyIntakeRepository.findByPetIdAndIntakeDateBetween(pet.getId(), startOfDay, endOfDay)
+        PetDailyIntake petDailyIntake = petDailyIntakeRepository.findByPetIdAndIntakeDate(pet.getId(), localDate)
                 .orElseThrow(() -> new IllegalArgumentException("pet daily intake not exist"));
         if (updatePetDto.getPetCalorieBalance() != null || updatePetDto.getPetCalorieBalance() >= 0){
             pet.setCalorieBalance(updatePetDto.getPetCalorieBalance());

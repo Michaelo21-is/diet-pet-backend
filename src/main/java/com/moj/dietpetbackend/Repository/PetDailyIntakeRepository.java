@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Repository
@@ -19,27 +20,25 @@ public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, 
             p.dailyBalanceCalories = p.dailyBalanceCalories + :burnedCalories,
             p.dailyProteinBalance = p.dailyProteinBalance + :protein
         where p.pet.id = :petId
-          and p.intakeDate between :startOfDay and :endOfDay
+          and p.intakeDate = :localDate 
     """)
     int updatePetIntakeAfterWalkOut(
-            @org.springframework.data.repository.query.Param("petId") Long petId,
-            @org.springframework.data.repository.query.Param("startOfDay") java.time.Instant startOfDay,
-            @org.springframework.data.repository.query.Param("endOfDay") java.time.Instant endOfDay,
-            @org.springframework.data.repository.query.Param("fat") Double fat,
-            @org.springframework.data.repository.query.Param("burnedCalories") Double burnedCalories,
-            @org.springframework.data.repository.query.Param("protein") Double protein
+            @Param("petId") Long petId,
+            @Param("localDate") LocalDate localDate,
+            @Param("fat") Double fat,
+            @Param("burnedCalories") Double burnedCalories,
+            @Param("protein") Double protein
     );
 
     @Query("""
     select p
     from PetDailyIntake p
     where p.pet.id = :petId
-      and p.intakeDate between :startOfDay and :endOfDay
+      and p.intakeDate = :localDate
 """)
-    Optional<PetDailyIntake> findByPetIdAndIntakeDateBetween(
+    Optional<PetDailyIntake> findByPetIdAndIntakeDate(
             @Param("petId") Long petId,
-            @Param("startOfDay") Instant startOfDay,
-            @Param("endOfDay") Instant endOfDay
+            @Param("localDate") LocalDate localDate
     );
 
     @Modifying
@@ -49,15 +48,14 @@ public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, 
             p.dailyCalorie = p.dailyCalorie + :burnedCalories,
             p.dailyProtein = p.dailyCalorie + :protein
         where p.pet.id = :petId
-          and p.intakeDate between :startOfDay and :endOfDay
+          and p.intakeDate = :localDate
     """)
     int updatePetIntakeAfterEating(
-            @org.springframework.data.repository.query.Param("petId") Long petId,
-            @org.springframework.data.repository.query.Param("startOfDay") java.time.Instant startOfDay,
-            @org.springframework.data.repository.query.Param("endOfDay") java.time.Instant endOfDay,
-            @org.springframework.data.repository.query.Param("fat") Double fat,
-            @org.springframework.data.repository.query.Param("burnedCalories") Double burnedCalories,
-            @org.springframework.data.repository.query.Param("protein") Double protein
+            @Param("petId") Long petId,
+            @Param("localDate") LocalDate localDate,
+            @Param("fat") Double fat,
+            @Param("burnedCalories") Double burnedCalories,
+            @Param("protein") Double protein
     );
 
 }

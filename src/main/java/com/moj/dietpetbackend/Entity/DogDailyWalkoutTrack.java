@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Builder
 @AllArgsConstructor
@@ -30,7 +31,7 @@ public class DogDailyWalkoutTrack {
     private Double WalkoutDuration;
 
     @Column(name = "intake_date")
-    private Instant intakeDate;
+    private LocalDate intakeDate;
 
     @Column(name = "calorie_burned")
     private Double calorieBurned;

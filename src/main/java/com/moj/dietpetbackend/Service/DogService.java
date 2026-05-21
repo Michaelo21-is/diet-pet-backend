@@ -45,12 +45,9 @@ public class DogService {
         ZoneId zone = ZoneId.of(pet.getUser().getTimeZone()); // לדוגמה Asia/Jerusalem
         LocalDate date = LocalDate.now(zone);
 
-        Instant startOfDay = date.atStartOfDay(zone).toInstant();
-        Instant endOfDay = date.plusDays(1).atStartOfDay(zone).minusNanos(1).toInstant();
         int dailyWalkOutUpdate = dogDailyWalkoutTrackRepository.updateTodayWalkout(
                 pet.getId(),
-                startOfDay,
-                endOfDay,
+                date,
                 response.getEquivalentStandardWalks(),
                 walkStats.getKm(),
                 response.getCaloriesBurned(),
@@ -63,12 +60,18 @@ public class DogService {
                    .WalkoutDuration(walkStats.getDuration())
                    .pet(pet)
                    .WalkoutTime(response.getEquivalentStandardWalks())
-                   .intakeDate(Instant.now())
+                   .intakeDate(date)
                    .build();
            dogDailyWalkoutTrackRepository.save(dogDailyWalkoutTrack);
        }
        PetDailyNutritionRequirementsResponse calculatedAfterWalk = PetNutritionUtils.calculateNewPetIntakeAfterWalkOut(response.getCaloriesBurned(), pet.getPetType(), age);
-       petDailyIntakeRepository.updatePetIntakeAfterWalkOut(pet.getId(), startOfDay, endOfDay, calculatedAfterWalk.getFat(), calculatedAfterWalk.getProtein(), calculatedAfterWalk.getCalories());
+        petDailyIntakeRepository.updatePetIntakeAfterWalkOut(
+                pet.getId(),
+                date,
+                calculatedAfterWalk.getFat(),
+                calculatedAfterWalk.getCalories(),
+                calculatedAfterWalk.getProtein()
+        );
         DocumentDogDailyActivity dogActivity = DocumentDogDailyActivity.builder()
                 .pet(pet)
                 .caloriesBurned(response.getCaloriesBurned())
@@ -84,9 +87,8 @@ public class DogService {
     public GetDogDailyWalkoutTrackResponse getDogDailyWalkoutTrackResponse(Long userId){
         DogWalkOutSuggestion dogWalkOutSuggestion = dogWalkOutSuggestionRepository
                 .findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("User doesnt have a dog walk out suggestion need to build a new one"));
-        Instant startOfDay = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).atStartOfDay(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).toInstant();
-        Instant endOfDay = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).plusDays(1).atStartOfDay(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone())).minusNanos(1).toInstant();
-        DogDailyWalkoutTrack dogDailyWalkoutTrack = dogDailyWalkoutTrackRepository.findByUserId(userId, startOfDay, endOfDay)
+        LocalDate localDate = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone()));
+        DogDailyWalkoutTrack dogDailyWalkoutTrack = dogDailyWalkoutTrackRepository.findByUserId(userId, localDate)
                 .orElse(null);
         if (dogDailyWalkoutTrack == null){
             Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
@@ -95,7 +97,7 @@ public class DogService {
             dogDailyWalkoutTrack.setWalkoutTime(0);
             dogDailyWalkoutTrack.setDistanceWalked(0.0);
             dogDailyWalkoutTrack.setPet(pet);
-            dogDailyWalkoutTrack.setIntakeDate(Instant.now());
+            dogDailyWalkoutTrack.setIntakeDate(localDate);
         }
         return GetDogDailyWalkoutTrackResponse.builder()
                 .dailyBalanceDailyWalkout(dogWalkOutSuggestion.getRecommendedWalksPerDay())

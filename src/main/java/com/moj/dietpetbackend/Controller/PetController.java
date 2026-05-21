@@ -44,15 +44,20 @@ public class PetController {
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-pet-daily-diet-track")
-    public ResponseEntity<GetPetDailyTrackResponse> getPetDailyTrackResponseResponseEntity(HttpServletRequest request){
+    public ResponseEntity<GetPetDailyTrackResponse> getPetDailyTrackResponseResponseEntity(
+            HttpServletRequest request,
+            @RequestParam(value = "date", required = false) String date
+    ) {
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
-        GetPetDailyTrackResponse response = petService.getPetDailyTrackResponse(userId);
+        GetPetDailyTrackResponse response = petService.getPetDailyTrackResponse(userId, date);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-pet-daily-activity")
-    public ResponseEntity<PetActivityInTheDayResponse> getPetDailyActivity(HttpServletRequest request){
+    public ResponseEntity<PetActivityInTheDayResponse> getPetDailyActivity(
+            HttpServletRequest request,
+            @RequestParam(value = "date", required = false) String date){
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
-        PetActivityInTheDayResponse response = petService.getPetDailyFoodAndWalkOutResponses(userId);
+        PetActivityInTheDayResponse response = petService.getPetDailyFoodAndWalkOutResponses(userId, date);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-pet-details")
