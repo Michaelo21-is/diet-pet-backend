@@ -129,45 +129,61 @@ public String buildPromptForPetRecommendation(
             """.formatted(petContext);
 }
 
-    public String buildPromptForAnazlyzingImage(Double grams, String petBreed, PetType petType, Double age, String foodName) {
+    public String buildPromptForAnazlyzingImage(
+            Double grams,
+            String petBreed,
+            PetType petType,
+            Double age,
+            String foodName
+    ) {
         String gramsInstruction = (grams == null)
                 ? """
-              The grams field was not provided by the user.
-              Estimate the visible portion in grams as best as possible.
-              """
-                : "The exact food weight is " + grams + " grams. Use this exact value in the grams field.";
+          The grams field was not provided by the user.
+          You MUST estimate the visible portion in grams from the image.
+          The grams value must be a positive number greater than 0.
+          Do not return 0, null, or an empty value.
+          If the image is unclear, make the best reasonable estimate based on the visible portion size.
+          """
+                : """
+          The exact food weight is %.1f grams.
+          Use this exact value in the grams field.
+          """.formatted(grams);
 
-        String foodNameInstruction = (foodName == null)
+        String foodNameInstruction = (foodName == null || foodName.isBlank())
                 ? """
-              The food name was not provided by the user.
-              Identify the food from the image as accurately as possible and fill the foodName field.
-              """
-                : "The user provided the food name: " + foodName + ". Use this exact value in the foodName field.";
+          The food name was not provided by the user.
+          You MUST identify the food from the image as accurately as possible.
+          If you are not fully sure, use the most likely food name.
+          Do not return an empty foodName.
+          """
+                : """
+          The user provided the food name: %s.
+          Use this exact value in the foodName field.
+          """.formatted(foodName);
 
-        String petContext = """
+            String petContext = """
         Pet details:
         - Pet type: %s
         - Pet breed: %s
-        - Pet age: %s years
-
+        - Pet age: %.1f years
+    
         Use these pet details when evaluating whether this food is appropriate, safe, and healthy for this specific pet.
         Consider the pet type, breed, and age when writing the aiReview and assigning the foodScore and foodSafetyLevel.
-        """
-                .formatted(
-                        petType,
-                        petBreed,
-                        age
-                );
+        """.formatted(
+                    petType,
+                    petBreed,
+                    age
+            );
 
-        return """
+            return """
         Analyze the attached pet food image.
-
+    
         %s
-
+    
         %s
-
+    
         %s
-
+    
         Return ONLY valid JSON with this exact shape:
         {
           "calories": 0.0,
@@ -179,28 +195,45 @@ public String buildPromptForPetRecommendation(
           "foodSafetyLevel": "SAFE",
           "aiReview": ""
         }
-
-        Rules:
+    
+        Critical nutrition rules:
+        - You MUST always estimate calories, protein, fat, and grams.
+        - calories must be a positive number greater than 0.
+        - grams must be a positive number greater than 0.
+        - protein and fat must be numbers. They can be 0 only if the food realistically contains almost none.
+        - Do NOT return null.
+        - Do NOT return empty values.
+        - Do NOT return "unknown".
+        - Do NOT omit any field.
+        - If the exact nutrition values are unknown, estimate them using common nutrition knowledge.
+        - If the image is unclear, still provide the best reasonable estimate.
+        - If the food cannot be identified with certainty, choose the most likely food and estimate based on that.
+    
+        JSON field rules:
         - calories, protein, fat, grams must be numbers
-        - foodScore must be an integer from 1 to 100 be very careful with this field
-        - foodName must always be a short string
-        - aiReview should be short
+        - foodScore must be an integer from 1 to 100
+        - foodName must always be a short non-empty string
+        - aiReview should be short, clear, and specific to the pet
         - no markdown
         - no extra text
+        - everything must be filled
+    
+        Safety evaluation rules:
         - Evaluate the food for this specific pet, not in general
         - If the food looks unsafe or unsuitable for the pet, reflect that in foodSafetyLevel, foodScore, and aiReview
-        - If the image is unclear, use the best reasonable estimate
-        - everything must be filled
+        - If the food contains or may contain dangerous ingredients for the pet type, mark it as CAUTION or UNSAFE
+        - Be stricter with dogs/cats when the food may include chocolate, onion, garlic, grapes, raisins, alcohol, caffeine, bones, xylitol, or very salty/fatty food
+    
         Allowed foodSafetyLevel values:
         - SAFE
         - CAUTION
         - UNSAFE
         """.formatted(
-                petContext,
-                gramsInstruction,
-                foodNameInstruction
-        );
-    }
+                    petContext,
+                    gramsInstruction,
+                    foodNameInstruction
+            );
+        }
     public String buildPromptForAWalk(Double km, Double duration, Double weight, Double age, String petBreed, ActivityLevels activityLevel){
         String walkContext = """
         Pet details:

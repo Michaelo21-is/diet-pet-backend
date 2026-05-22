@@ -36,14 +36,13 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // public auth endpoints
-                        .requestMatchers("/api/auth/sign-in", "/api/auth/sign-up").permitAll()
+                        .requestMatchers("/api/auth/sign-in", "/api/auth/sign-up", "/api/auth/renew-access-token-by-refresh-token").permitAll()
 
                         // protected auth endpoints
                         .requestMatchers("/api/auth/set_two_factor").authenticated()
                         .requestMatchers("/api/auth/validate_two_factor").authenticated()
                         .requestMatchers("/api/auth/change_password").authenticated()
                         .requestMatchers("/api/auth/sign-out").authenticated()
-                        .requestMatchers("/api/auth/renew-access-token-by-refresh-token").authenticated()
 
                         // pet endpoints
                         .requestMatchers("/api/pet/perform-prefix-for-breed").authenticated()

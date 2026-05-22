@@ -52,7 +52,7 @@ public class ImageService {
             throw new Exception("unsupported image format");
         }
         // transfering the image to the image file
-        String uniqueFileName = generateRandomImageName(IMAGE_NAME_LENGTH);
+        String uniqueFileName = generateRandomImageName(IMAGE_NAME_LENGTH) + "." + extension;
         String filePath = IMAGE_PATH + File.separator + uniqueFileName;
         file.transferTo(new File(filePath));
 

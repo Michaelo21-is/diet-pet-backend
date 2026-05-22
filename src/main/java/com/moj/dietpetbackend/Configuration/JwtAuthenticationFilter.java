@@ -33,7 +33,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
 
         return path.equals("/api/auth/sign-in")
-                || path.equals("/api/auth/sign-up");
+                || path.equals("/api/auth/sign-up")
+                || path.equals("/api/auth/renew-access-token-by-refresh-token");
     }
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {

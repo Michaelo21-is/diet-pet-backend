@@ -84,11 +84,10 @@ public class DogService {
         return response;
     }
     @Transactional
-    public GetDogDailyWalkoutTrackResponse getDogDailyWalkoutTrackResponse(Long userId){
+    public GetDogDailyWalkoutTrackResponse getDogDailyWalkoutTrackResponse(Long userId, LocalDate date){
         DogWalkOutSuggestion dogWalkOutSuggestion = dogWalkOutSuggestionRepository
                 .findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("User doesnt have a dog walk out suggestion need to build a new one"));
-        LocalDate localDate = LocalDate.now(ZoneId.of(dogWalkOutSuggestion.getPet().getUser().getTimeZone()));
-        DogDailyWalkoutTrack dogDailyWalkoutTrack = dogDailyWalkoutTrackRepository.findByUserId(userId, localDate)
+        DogDailyWalkoutTrack dogDailyWalkoutTrack = dogDailyWalkoutTrackRepository.findByUserId(userId, date)
                 .orElse(null);
         if (dogDailyWalkoutTrack == null){
             Pet pet = petRepository.findByUserId(userId).orElseThrow(() -> new IllegalArgumentException("user doesnt have a pet"));
@@ -97,7 +96,7 @@ public class DogService {
             dogDailyWalkoutTrack.setWalkoutTime(0);
             dogDailyWalkoutTrack.setDistanceWalked(0.0);
             dogDailyWalkoutTrack.setPet(pet);
-            dogDailyWalkoutTrack.setIntakeDate(localDate);
+            dogDailyWalkoutTrack.setIntakeDate(date);
         }
         return GetDogDailyWalkoutTrackResponse.builder()
                 .dailyBalanceDailyWalkout(dogWalkOutSuggestion.getRecommendedWalksPerDay())

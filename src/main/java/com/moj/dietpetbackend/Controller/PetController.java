@@ -58,6 +58,7 @@ public class PetController {
             @RequestParam(value = "date", required = false) String date){
         Long userId = jwtService.getUserIdFromAccessTokenAndTempToken(request, TokenType.ACCESS);
         PetActivityInTheDayResponse response = petService.getPetDailyFoodAndWalkOutResponses(userId, date);
+        System.out.println("response for pet daily activity: " + response);
         return ResponseEntity.ok(response);
     }
     @GetMapping("/get-pet-details")

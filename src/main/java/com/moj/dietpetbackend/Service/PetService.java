@@ -177,7 +177,7 @@ public class PetService {
                     .petType(pet.getPetType())
                     .build();
         }
-        GetDogDailyWalkoutTrackResponse dogDailyWalkoutTrackResponse = dogService.getDogDailyWalkoutTrackResponse(userId);
+        GetDogDailyWalkoutTrackResponse dogDailyWalkoutTrackResponse = dogService.getDogDailyWalkoutTrackResponse(userId, localDate);
         return GetPetDailyTrackResponse.builder()
                 .caloriesBalance(petDailyTracker.getDailyBalanceCalories())
                 .proteinBalance(petDailyTracker.getDailyProteinBalance())
@@ -230,6 +230,7 @@ public class PetService {
                                 .grams(foodTracker.getGrams())
                                 .protein(foodTracker.getProtein())
                                 .fat(foodTracker.getFat())
+                                .calories(foodTracker.getCalories())
                                 .AiReview(foodTracker.getAiReview())
                                 .foodImagePath(foodTracker.getImage().getImageName())
                                 .time(foodTracker.getCreatedAt().atZone(zoneId).format(formatter))
