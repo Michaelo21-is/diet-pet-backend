@@ -57,5 +57,5 @@ public interface PetDailyIntakeRepository extends JpaRepository<PetDailyIntake, 
             @Param("burnedCalories") Double burnedCalories,
             @Param("protein") Double protein
     );
-
+    void deleteAllByIntakeDateBefore(LocalDate sevenDaysAgo);
 }

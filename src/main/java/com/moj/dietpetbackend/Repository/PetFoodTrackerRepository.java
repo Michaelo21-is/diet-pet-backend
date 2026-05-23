@@ -14,4 +14,5 @@ public interface PetFoodTrackerRepository extends JpaRepository<PetFoodTracker, 
             Instant startOfDay,
             Instant endOfDay
     );
+    void deleteAllByCreatedAtBefore(Instant sevenDaysAgo);
 }

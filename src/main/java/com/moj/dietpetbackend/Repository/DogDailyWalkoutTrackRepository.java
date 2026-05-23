@@ -35,4 +35,5 @@ public interface DogDailyWalkoutTrackRepository extends JpaRepository<DogDailyWa
     );
     @Query("select d from DogDailyWalkoutTrack d where d.pet.user.id = :userId and d.intakeDate= :localDate")
     Optional<DogDailyWalkoutTrack> findByUserId(@Param("userId") Long userId, @Param("localDate") LocalDate localDate);
+    void deleteAllByIntakeDateBefore(LocalDate sevenDaysAgo);
 }
