@@ -266,7 +266,6 @@ public class PetService {
                 .dailyProteinIntake(pet.getProteinBalance())
                 .dailyFatIntake(pet.getFatBalance())
                 .petWeightKg(pet.getPetWeightKg())
-                .petType(pet.getPetType())
                 .build();
     }
     public void updatePet(Long userId, UpdatePetDto updatePetDto){

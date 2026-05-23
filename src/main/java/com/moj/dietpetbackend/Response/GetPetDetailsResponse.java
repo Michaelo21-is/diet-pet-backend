@@ -15,5 +15,4 @@ public class GetPetDetailsResponse {
     private Double dailyCaloriesIntake;
     private Double dailyProteinIntake;
     private Double dailyFatIntake;
-    private PetType petType;
 }
