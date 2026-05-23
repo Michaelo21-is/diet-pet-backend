@@ -16,6 +16,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "pet_food_tracker")
+// doucment daily pet what he has been eat all day
 public class PetFoodTracker {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table(name = "dog_walk_out_suggestion")
+// ai sugesttion to dog base on pet set up
 public class DogWalkOutSuggestion {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Id

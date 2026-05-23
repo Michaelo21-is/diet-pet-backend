@@ -14,6 +14,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "two_factor_email")
+// when user sign up he need to verify email
 public class TwoFactorEmail {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

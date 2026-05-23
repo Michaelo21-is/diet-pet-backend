@@ -15,6 +15,7 @@ import java.time.Instant;
 @Builder
 @Entity
 @Table(name = "document_dog_daily_activity")
+// to doucment the dog walkouts
 public class DocumentDogDailyActivity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)

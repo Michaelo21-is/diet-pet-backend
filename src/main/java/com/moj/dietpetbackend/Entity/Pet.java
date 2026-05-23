@@ -52,8 +52,6 @@ public class Pet {
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PetDailyIntake> petDailyIntake;
 
-    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DogWalkOut> dogWalkOut;
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PetFoodTracker> petFoodTracker;
