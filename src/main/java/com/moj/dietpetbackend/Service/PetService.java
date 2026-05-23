@@ -250,6 +250,7 @@ public class PetService {
                                 .walkoutDistanceKm(dogWalkOut.getDistanceWalkedKm())
                                 .walkoutTimeMin(dogWalkOut.getDurationMinutes())
                                 .aiReview(dogWalkOut.getAiReview())
+                                .activityLevel(dogWalkOut.getActivityLevel())
                                 .time(dogWalkOut.getCreatedAt().atZone(zoneId).format(formatter))
                                 .build()
                         ).toList();
@@ -265,6 +266,7 @@ public class PetService {
                 .dailyProteinIntake(pet.getProteinBalance())
                 .dailyFatIntake(pet.getFatBalance())
                 .petWeightKg(pet.getPetWeightKg())
+                .petType(pet.getPetType())
                 .build();
     }
     public void updatePet(Long userId, UpdatePetDto updatePetDto){

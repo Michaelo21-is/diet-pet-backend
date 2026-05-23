@@ -1,5 +1,6 @@
 package com.moj.dietpetbackend.Response;
 
+import com.moj.dietpetbackend.Enums.ActivityLevels;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,5 +15,6 @@ public class DogWalkOutSessionInfoResponse {
     private Double walkoutTimeMin;
     private Double caloriesBurned;
     private String aiReview;
+    private ActivityLevels activityLevel;
     private String time;
 }

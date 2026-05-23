@@ -1,5 +1,6 @@
 package com.moj.dietpetbackend.Response;
 
+import com.moj.dietpetbackend.Enums.PetType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,4 +15,5 @@ public class GetPetDetailsResponse {
     private Double dailyCaloriesIntake;
     private Double dailyProteinIntake;
     private Double dailyFatIntake;
+    private PetType petType;
 }

@@ -37,6 +37,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         // public auth endpoints
                         .requestMatchers("/api/auth/sign-in", "/api/auth/sign-up", "/api/auth/renew-access-token-by-refresh-token").permitAll()
+                        .requestMatchers("/Images/**").permitAll()
 
                         // protected auth endpoints
                         .requestMatchers("/api/auth/set_two_factor").authenticated()

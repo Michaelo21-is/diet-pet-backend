@@ -1,5 +1,6 @@
 package com.moj.dietpetbackend.Entity;
 
+import com.moj.dietpetbackend.Enums.ActivityLevels;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,15 +20,18 @@ public class DocumentDogDailyActivity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name = "distance_walked_km")
+    @Column(name = "distance_walked_km", nullable = false)
     private Double distanceWalkedKm;
-    @Column(name = "duration_minutes")
+    @Column(name = "duration_minutes", nullable = false)
     private Double durationMinutes;
-    @Column(name = "calories_burned")
+    @Column(name = "calories_burned", nullable = false)
     private Double caloriesBurned;
-    @Column(name = "ai_review")
+    @Column(name = "ai_review", nullable = false)
     private String aiReview;
-    @Column(name = "created_at")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "activity_level", nullable = false)
+    private ActivityLevels activityLevel;
+    @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
     @ManyToOne

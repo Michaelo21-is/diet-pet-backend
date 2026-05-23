@@ -79,6 +79,7 @@ public class DogService {
                 .durationMinutes(walkStats.getDuration())
                 .aiReview(response.getAiReview())
                 .createdAt(Instant.now())
+                .activityLevel(walkStats.getActivityLevel())
                 .build();
         documentDogDailyActivityRepository.save(dogActivity);
         return response;
